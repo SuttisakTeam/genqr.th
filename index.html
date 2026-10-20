@@ -3,9 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>Gen QR TH — ระบบแปลงลิงก์เป็น QR Code มาตรฐานวิศวกรรม | ปลอดภัย ไม่มีโฆษณา</title>
-  <meta name="description" content="สร้าง QR Code จากลิงก์อย่างปลอดภัย 100% ประมวลผลในเครื่อง ใช้พื้นที่จุดน้อยที่สุดโดยไม่ย่อลิงก์ ปรับแต่งสีและโลโก้ได้ รองรับการดาวน์โหลดหลายรายการพร้อมกัน" />
   
+  <!-- ========================================== -->
+  <!-- 1. SEO & SEARCH ENGINE OPTIMIZATION TAGS -->
+  <!-- ========================================== -->
+  <title>Gen QR TH — ระบบแปลงลิงก์เป็น QR Code ปลอดภัย ไม่มีโฆษณา</title>
+  <meta name="description" content="สร้าง QR Code จากลิงก์อย่างปลอดภัย 100% ประมวลผลในเบราว์เซอร์ ไม่ย่อลิงก์ ลิงก์ตรงไม่มีวันหมดอายุ ปรับแต่งสี ใส่โลโก้ และดาวน์โหลดหลายรายการเป็นไฟล์ ZIP ได้ฟรี" />
+  <meta name="keywords" content="QR Code, สร้าง QR Code, แปลงลิงก์เป็น QR Code, Gen QR TH, QR Code ไม่มีโฆษณา, สร้าง QR Code ฟรี" />
+  <meta name="author" content="Gen QR TH" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  
+  <!-- Canonical URL (ป้องกันปัญหา Duplicate Content) -->
+  <link rel="canonical" href="https://suttisakteam.github.io/genqr.th/" />
+
+  <!-- ========================================== -->
+  <!-- 2. SOCIAL MEDIA SHARE PREVIEW (Open Graph) -->
+  <!-- ========================================== -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://suttisakteam.github.io/genqr.th/" />
+  <meta property="og:title" content="Gen QR TH — ระบบแปลงลิงก์เป็น QR Code ปลอดภัย ไม่มีโฆษณา" />
+  <meta property="og:description" content="สร้าง QR Code จากลิงก์อย่างปลอดภัย 100% ไม่ผ่านเว็บย่อลิงก์ ใช้งานง่าย ไม่มีโฆษณา รองรับโหมดกลุ่ม (Batch ZIP) และปรับแต่งสี/โลโก้ได้ทันที" />
+  <meta property="og:locale" content="th_TH" />
+  <meta property="og:locale:alternate" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Gen QR TH — ระบบแปลงลิงก์เป็น QR Code ปลอดภัย ไม่มีโฆษณา" />
+  <meta name="twitter:description" content="สร้าง QR Code จากลิงก์อย่างปลอดภัย 100% ไม่ผ่านเว็บย่อลิงก์ ใช้งานง่าย ไม่มีโฆษณา" />
+
+  <!-- ========================================== -->
+  <!-- 3. STRUCTURED DATA (JSON-LD Schema)      -->
+  <!-- ========================================== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Gen QR TH",
+    "url": "https://suttisakteam.github.io/genqr.th/",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript. Requires HTML5.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "THB"
+    },
+    "description": "Secure, client-side QR Code generator for Thailand. No ads, direct links, minimal matrix optimization."
+  }
+  </script>
+
   <!-- Strict Content Security Policy (Defense-in-Depth) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' blob:;" />
 
@@ -55,7 +101,6 @@
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
     }
-    /* Subtle Blueprint Grid for QR Preview Stage */
     .qr-stage-grid {
       background-color: #F3F1EC;
       background-image: 
@@ -63,7 +108,6 @@
         linear-gradient(to bottom, rgba(20, 20, 19, 0.04) 1px, transparent 1px);
       background-size: 20px 20px;
     }
-    /* Custom Color Input Styling */
     input[type="color"] {
       -webkit-appearance: none;
       border: none;
@@ -77,11 +121,6 @@
       border: 1px solid #E6E4DD;
       border-radius: 6px;
     }
-    /* Smooth Drawer Transition */
-    .drawer-content {
-      transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-    }
-    /* Hide scrollbar for mobile horizontal action bar */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -89,7 +128,6 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    /* Custom Scrollbar for desktop */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -104,7 +142,6 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #787672;
     }
-    /* Prevent iOS input zoom on focus by ensuring >= 16px on mobile */
     @media screen and (max-width: 768px) {
       input[type="text"], textarea, select {
         font-size: 16px !important;
@@ -114,10 +151,9 @@
 </head>
 <body class="min-h-screen flex flex-col selection:bg-forest selection:text-white">
 
-  <!-- TOP UTILITY & SECURITY BAR (Responsive + Bilingual + Dual Support Links) -->
+  <!-- TOP UTILITY & SECURITY BAR -->
   <header class="sticky top-0 z-30 bg-paper/95 backdrop-blur-md border-b border-borderWarm">
     <div class="max-w-5xl mx-auto px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
-      <!-- Brand Identity -->
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <a href="#" onclick="resetToSimpleView(); return false;" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-ink text-paper flex items-center justify-center font-mono font-semibold text-xs sm:text-sm tracking-tighter shadow-sm hover:bg-forest transition-colors shrink-0">
           QR
@@ -135,9 +171,7 @@
         </div>
       </div>
 
-      <!-- Right Controls: Language Switcher & Dual Support Links (TrueMoney + Lazada) -->
       <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <!-- Language Switcher Pill -->
         <div class="inline-flex items-center bg-subtle p-0.5 rounded-lg border border-borderWarm" role="group" aria-label="Language Switcher">
           <button onclick="setLanguage('th')" id="langBtnTH" class="px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition-all bg-surface text-ink shadow-sm">
             TH
@@ -147,7 +181,6 @@
           </button>
         </div>
 
-        <!-- Support Option 1: TrueMoney Link -->
         <a href="https://tmn.app.link/v8tUbBfxn7b" 
            target="_blank" 
            rel="noopener noreferrer sponsored"
@@ -159,7 +192,6 @@
           <svg class="w-3 h-3 opacity-60 shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
         </a>
 
-        <!-- Support Option 2: Lazada Partner Link -->
         <a href="https://www.lazada.co.th/?t=p-iHeHvwX" 
            target="_blank" 
            rel="noopener noreferrer sponsored"
@@ -174,10 +206,9 @@
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE: ULTRA-SIMPLE FIRST IMPRESSION -->
+  <!-- MAIN WORKSPACE -->
   <main class="flex-1 max-w-5xl w-full mx-auto px-3.5 sm:px-6 py-5 sm:py-10">
 
-    <!-- Hero Headline -->
     <div class="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-end justify-between gap-2 sm:gap-3">
       <div>
         <h1 class="text-xl sm:text-3xl font-bold tracking-tight text-ink" data-i18n="hero.title">
@@ -188,22 +219,18 @@
         </p>
       </div>
 
-      <!-- Quick jump to How-To Guide -->
       <a href="#how-to-guide" class="inline-flex items-center gap-1.5 text-xs font-medium text-forest hover:underline self-start md:self-auto">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <span data-i18n="hero.guideLink">ดูคู่มือวิธีใช้งานพร้อมภาพประกอบด้านล่าง</span>
       </a>
     </div>
 
-    <!-- PRIMARY CARD: STEP 1 (INPUT) & STEP 2 (QR + DOWNLOAD) -->
     <div class="bg-surface rounded-2xl border border-borderWarm shadow-studio overflow-hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12">
         
-        <!-- LEFT SIDE: Simple Input & Action Command Buttons -->
         <div class="lg:col-span-7 p-4 sm:p-7 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-borderWarm">
           
           <div class="space-y-4">
-            <!-- Step 1 Label -->
             <div class="flex items-center justify-between gap-2">
               <label for="qrInput" class="flex items-center gap-2 text-xs sm:text-sm font-bold text-ink">
                 <span class="w-5 h-5 rounded-full bg-forest text-white text-xs font-mono flex items-center justify-center shrink-0">1</span>
@@ -220,31 +247,28 @@
               </div>
             </div>
 
-            <!-- Main URL / Text Input -->
             <div class="relative">
               <textarea 
                 id="qrInput" 
                 rows="3"
                 placeholder="https://..."
                 class="w-full rounded-xl bg-paper border-2 border-borderWarm focus:border-forest focus:bg-surface px-3.5 py-3 text-base font-mono text-ink placeholder:text-stone/60 focus:outline-none transition-all resize-none"
-              >https://www.google.com</textarea>
+              >https://suttisakteam.github.io/genqr.th/</textarea>
             </div>
 
-            <!-- Minimal Data Area Status Bar -->
             <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg bg-subtle/70 border border-borderWarm/70 text-[11px] sm:text-xs text-charcoal">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
                 <span><span data-i18n="status.prefix">โหมดประหยัดพื้นที่จุด:</span> <strong id="ecStatusLabel" class="font-semibold text-ink">Level L (7%)</strong></span>
               </div>
               <div class="flex items-center gap-2 font-mono text-[11px] text-stone">
-                <span id="charByteCounter">24 bytes</span>
+                <span id="charByteCounter">38 bytes</span>
                 <span>•</span>
                 <span id="matrixVersionBadge" class="text-forest font-semibold">Version 2 (25×25)</span>
               </div>
             </div>
           </div>
 
-          <!-- SEPARATE COMMAND BUTTONS BAR (Horizontal Touch Scroll on Mobile, Wrap on Desktop) -->
           <div class="mt-6 pt-5 border-t border-borderWarm">
             <div class="flex items-center justify-between mb-2.5">
               <p class="text-[11px] font-mono uppercase tracking-wider text-stone" data-i18n="tools.header">
@@ -254,8 +278,6 @@
             </div>
             
             <div class="flex sm:flex-wrap items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
-              
-              <!-- Button 1: Toggle Customize Drawer -->
               <button 
                 id="btnToggleCustomize"
                 onclick="toggleCustomizeDrawer()" 
@@ -266,7 +288,6 @@
                 <svg id="customizeChevron" class="w-3.5 h-3.5 text-stone transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
 
-              <!-- Button 2: Open Batch Modal -->
               <button 
                 onclick="openModal('batchModal')" 
                 class="shrink-0 inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-borderWarm bg-paper hover:bg-subtle text-ink transition-all active:scale-95"
@@ -275,7 +296,6 @@
                 <span data-i18n="tools.batchBtn">สร้างหลาย QR พร้อมกัน (.ZIP)</span>
               </button>
 
-              <!-- Button 3: Open History Modal -->
               <button 
                 onclick="openModal('historyModal')" 
                 class="shrink-0 inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-borderWarm bg-paper hover:bg-subtle text-ink transition-all active:scale-95"
@@ -285,7 +305,6 @@
                 <span id="historyCountBadge" class="px-1.5 py-0.5 text-[10px] font-mono rounded-md bg-subtle text-charcoal">0</span>
               </button>
 
-              <!-- Button 4: Scroll to How-to Guide -->
               <a 
                 href="#how-to-guide"
                 class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-medium text-stone hover:text-ink hover:bg-subtle transition-all"
@@ -293,16 +312,11 @@
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span data-i18n="tools.guideBtn">วิธีใช้</span>
               </a>
-
             </div>
           </div>
-
         </div>
 
-        <!-- RIGHT SIDE: Instant QR Preview & Primary Download -->
         <div class="lg:col-span-5 p-4 sm:p-6 bg-subtle/40 flex flex-col items-center justify-between">
-          
-          <!-- Step 2 Header -->
           <div class="w-full flex items-center justify-between mb-3">
             <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-ink">
               <span class="w-5 h-5 rounded-full bg-forest text-white text-xs font-mono flex items-center justify-center shrink-0">2</span>
@@ -313,20 +327,17 @@
             </span>
           </div>
 
-          <!-- QR Canvas Stage -->
           <div class="w-full py-4 px-4 rounded-xl qr-stage-grid border border-borderWarm flex flex-col items-center justify-center">
             <div class="relative p-3 bg-white rounded-xl shadow-card border border-borderWarm/60">
               <canvas id="qrCanvas" width="1000" height="1000" class="w-44 h-44 sm:w-52 sm:h-52 rounded-lg block"></canvas>
             </div>
           </div>
 
-          <!-- Contrast Warning Banner (Hidden unless low contrast) -->
           <div id="contrastWarningBanner" class="hidden w-full mt-3 p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-[11px] text-amber-900 flex items-center gap-2">
             <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             <span data-i18n="step2.contrastWarn">สี QR กับพื้นหลังใกล้เคียงกันเกินไป อาจสแกนติดยาก</span>
           </div>
 
-          <!-- Primary Download Buttons -->
           <div class="w-full mt-4 space-y-2">
             <div class="grid grid-cols-2 gap-2.5">
               <button onclick="downloadQR('png')" class="py-3 px-4 rounded-xl bg-forest hover:bg-forestHover text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]">
@@ -339,7 +350,6 @@
               </button>
             </div>
 
-            <!-- Secondary Quick Actions: Copy, Share (Mobile Friendly), Save -->
             <div class="grid grid-cols-3 gap-2">
               <button onclick="copyQRImageToClipboard()" class="py-2 px-2 rounded-lg bg-surface hover:bg-subtle text-charcoal border border-borderWarm font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-colors active:scale-95">
                 <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
@@ -355,12 +365,9 @@
               </button>
             </div>
           </div>
-
         </div>
-
       </div>
 
-      <!-- EXPANDABLE DRAWER: CUSTOMIZE COLOR, SHAPE & LOGO (Hidden by default) -->
       <div id="customizeDrawer" class="hidden border-t border-borderWarm bg-paper/70 p-4 sm:p-7">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
@@ -373,7 +380,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <!-- Column 1: Colors -->
           <div class="bg-surface p-4 rounded-xl border border-borderWarm space-y-3">
             <label class="block text-xs font-semibold text-ink" data-i18n="drawer.col1Title">1. สีจุด QR และสีพื้นหลัง</label>
             <div class="grid grid-cols-2 gap-2.5">
@@ -392,7 +398,6 @@
                 </div>
               </div>
             </div>
-            <!-- Quick Color Presets -->
             <div class="pt-1 flex flex-wrap gap-1.5">
               <button onclick="applyColorPreset('#141413', '#FFFFFF')" class="px-2 py-1 rounded text-[11px] font-medium bg-subtle hover:bg-borderWarm text-ink" data-i18n="preset.black">มาตรฐาน (ดำ)</button>
               <button onclick="applyColorPreset('#0F5338', '#FAF9F5')" class="px-2 py-1 rounded text-[11px] font-medium bg-emerald-950/10 text-forest" data-i18n="preset.forest">เขียว Forest</button>
@@ -401,7 +406,6 @@
             </div>
           </div>
 
-          <!-- Column 2: Shape & Matrix Density -->
           <div class="bg-surface p-4 rounded-xl border border-borderWarm space-y-3">
             <label class="block text-xs font-semibold text-ink" data-i18n="drawer.col2Title">2. รูปทรงจุด และความหนาแน่น</label>
             <div class="grid grid-cols-3 gap-1.5">
@@ -428,7 +432,6 @@
             </div>
           </div>
 
-          <!-- Column 3: Center Logo -->
           <div class="bg-surface p-4 rounded-xl border border-borderWarm space-y-3">
             <div class="flex items-center justify-between">
               <label class="block text-xs font-semibold text-ink" data-i18n="drawer.col3Title">3. โลโก้ตรงกลาง QR</label>
@@ -451,12 +454,9 @@
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- VISUAL HOW-TO GUIDE SECTION (คู่มือวิธีใช้งานพร้อมรูปภาพประกอบ)           -->
-    <!-- ===================================================================== -->
+    <!-- HOW-TO GUIDE SECTION -->
     <section id="how-to-guide" class="mt-10 sm:mt-16 pt-8 sm:pt-10 border-t border-borderWarm">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-3">
         <div>
@@ -466,10 +466,7 @@
         <p class="text-xs text-stone" data-i18n="guide.subtitle">ไม่ต้องสมัครสมาชิก • ไม่มีลายน้ำ • ลิงก์ไม่มีวันหมดอายุ</p>
       </div>
 
-      <!-- PART 1: 3-Step Basic Workflow with Visual Illustrations -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-8 sm:mb-10">
-        
-        <!-- Step 1 Visual Card -->
         <div class="bg-surface rounded-2xl border border-borderWarm overflow-hidden shadow-card flex flex-col">
           <div class="bg-subtle/70 border-b border-borderWarm p-4 flex items-center justify-center h-40 sm:h-44">
             <svg class="w-full max-w-[240px] h-auto" viewBox="0 0 240 130" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -499,7 +496,6 @@
           </div>
         </div>
 
-        <!-- Step 2 Visual Card -->
         <div class="bg-surface rounded-2xl border border-borderWarm overflow-hidden shadow-card flex flex-col">
           <div class="bg-subtle/70 border-b border-borderWarm p-4 flex items-center justify-center h-40 sm:h-44">
             <svg class="w-full max-w-[240px] h-auto" viewBox="0 0 240 130" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -541,7 +537,6 @@
           </div>
         </div>
 
-        <!-- Step 3 Visual Card -->
         <div class="bg-surface rounded-2xl border border-borderWarm overflow-hidden shadow-card flex flex-col">
           <div class="bg-subtle/70 border-b border-borderWarm p-4 flex items-center justify-center h-40 sm:h-44">
             <svg class="w-full max-w-[240px] h-auto" viewBox="0 0 240 130" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -570,18 +565,14 @@
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- PART 2: Visual Guide for the 3 Special Feature Buttons -->
       <div class="mb-4">
         <h3 class="text-sm sm:text-base font-bold text-ink" data-i18n="guide.toolsTitle">คู่มือการใช้ปุ่มคำสั่งเสริม (เมื่อต้องการปรับแต่งหรือสร้างจำนวนมาก)</h3>
         <p class="text-xs text-stone mt-0.5" data-i18n="guide.toolsSub">คลิกที่ปุ่มคำสั่งใต้ช่องวางลิงก์เพื่อเปิดใช้งานแต่ละโหมด</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-        
-        <!-- Tool 1 Visual Card: Customize Color & Logo -->
         <div class="bg-surface rounded-2xl border border-borderWarm p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div class="rounded-xl bg-paper border border-borderWarm p-3 mb-4 flex items-center justify-center h-32">
@@ -613,7 +604,6 @@
           </button>
         </div>
 
-        <!-- Tool 2 Visual Card: Batch Mode .ZIP -->
         <div class="bg-surface rounded-2xl border border-borderWarm p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div class="rounded-xl bg-paper border border-borderWarm p-3 mb-4 flex items-center justify-center h-32">
@@ -645,7 +635,6 @@
           </button>
         </div>
 
-        <!-- Tool 3 Visual Card: Local History -->
         <div class="bg-surface rounded-2xl border border-borderWarm p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div class="rounded-xl bg-paper border border-borderWarm p-3 mb-4 flex items-center justify-center h-32">
@@ -676,10 +665,8 @@
             เปิดดูประวัติของฉัน
           </button>
         </div>
-
       </div>
 
-      <!-- PART 3: Why Minimal Data Area Matters (Visual Comparison Banner) -->
       <div class="mt-6 bg-surface rounded-2xl border border-borderWarm p-4 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="space-y-2 max-w-xl">
           <span class="text-[11px] font-mono uppercase tracking-wider text-forest font-semibold" data-i18n="compare.eyebrow">Engineering Difference</span>
@@ -689,7 +676,6 @@
           </p>
         </div>
 
-        <!-- Visual Comparison SVG: Dense QR vs Minimal Matrix QR -->
         <div class="flex items-center gap-3 sm:gap-4 shrink-0 bg-paper px-4 py-3 rounded-xl border border-borderWarm">
           <div class="text-center">
             <svg class="w-16 h-16 mx-auto" viewBox="0 0 64 64" fill="none">
@@ -732,17 +718,13 @@
           </div>
         </div>
       </div>
-
     </section>
 
   </main>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL 1: BATCH GENERATOR (.ZIP) - Mobile Bottom Sheet Friendly        -->
-  <!-- ===================================================================== -->
+  <!-- BATCH MODAL -->
   <div id="batchModal" class="fixed inset-0 z-50 hidden bg-ink/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-surface w-full max-w-2xl rounded-t-2xl sm:rounded-2xl border border-borderWarm shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-      <!-- Modal Header -->
       <div class="px-5 py-4 border-b border-borderWarm flex items-center justify-between bg-paper">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-emerald-950/10 text-forest flex items-center justify-center font-mono font-bold text-xs">ZIP</div>
@@ -754,7 +736,6 @@
         <button onclick="closeModal('batchModal')" class="w-8 h-8 rounded-lg bg-subtle hover:bg-borderWarm text-charcoal flex items-center justify-center text-sm font-bold">✕</button>
       </div>
 
-      <!-- Modal Body -->
       <div class="p-5 space-y-4 overflow-y-auto">
         <div class="flex items-center justify-between text-xs">
           <span class="font-medium text-charcoal" data-i18n="batch.inputLabel">รายการลิงก์ หรือข้อความ (สูงสุด 200 รายการต่อครั้ง)</span>
@@ -767,7 +748,7 @@
           placeholder="https://example.com/item-1&#10;https://example.com/item-2"
           class="w-full rounded-xl bg-paper border border-borderWarm p-3.5 text-sm font-mono text-ink focus:outline-none focus:border-forest resize-y"
           oninput="updateBatchCounter()"
-        >https://www.lazada.co.th
+        >https://suttisakteam.github.io/genqr.th/
 https://example.com/product-01
 https://example.com/product-02</textarea>
 
@@ -788,7 +769,6 @@ https://example.com/product-02</textarea>
         <p id="batchStatusText" class="text-xs font-mono text-stone text-center hidden"></p>
       </div>
 
-      <!-- Modal Footer -->
       <div class="px-5 py-3.5 border-t border-borderWarm bg-paper flex items-center justify-end gap-2.5">
         <button onclick="closeModal('batchModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-charcoal hover:bg-subtle" data-i18n="modal.closeBtn">ปิดหน้าต่าง</button>
         <button id="batchGenerateBtn" onclick="generateBatchZip()" class="px-5 py-2.5 rounded-xl bg-forest hover:bg-forestHover text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-all">
@@ -799,12 +779,9 @@ https://example.com/product-02</textarea>
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL 2: LOCAL HISTORY VAULT - Mobile Bottom Sheet Friendly           -->
-  <!-- ===================================================================== -->
+  <!-- HISTORY MODAL -->
   <div id="historyModal" class="fixed inset-0 z-50 hidden bg-ink/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-surface w-full max-w-2xl rounded-t-2xl sm:rounded-2xl border border-borderWarm shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
-      <!-- Modal Header -->
       <div class="px-5 py-4 border-b border-borderWarm flex items-center justify-between bg-paper">
         <div>
           <h3 class="font-bold text-sm text-ink" data-i18n="hist.title">ประวัติการสร้าง QR ของฉัน (บันทึกเฉพาะในเครื่องนี้)</h3>
@@ -813,7 +790,6 @@ https://example.com/product-02</textarea>
         <button onclick="closeModal('historyModal')" class="w-8 h-8 rounded-lg bg-subtle hover:bg-borderWarm text-charcoal flex items-center justify-center text-sm font-bold">✕</button>
       </div>
 
-      <!-- Toolbar -->
       <div class="px-5 py-2.5 bg-subtle/60 border-b border-borderWarm flex items-center justify-between">
         <button onclick="saveCurrentToHistory()" class="text-xs font-semibold text-forest hover:underline flex items-center gap-1">
           <span data-i18n="hist.saveCurrent">+ บันทึก QR ปัจจุบันลงประวัติ</span>
@@ -828,14 +804,11 @@ https://example.com/product-02</textarea>
         </div>
       </div>
 
-      <!-- History List -->
       <div id="historyContainer" class="p-5 overflow-y-auto space-y-2.5 flex-1"></div>
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- FOOTER: TRANSPARENT SPONSOR (TRUEMONEY + LAZADA) & THAI PDPA          -->
-  <!-- ===================================================================== -->
+  <!-- FOOTER -->
   <footer class="mt-12 border-t border-borderWarm bg-surface">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-xs text-stone">
       <div class="space-y-1">
@@ -843,9 +816,7 @@ https://example.com/product-02</textarea>
         <p data-i18n="footer.pdpa">ปฏิบัติตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) และ พ.ร.บ. คอมพิวเตอร์ฯ ของประเทศไทย ไม่มีการดักเก็บข้อมูลผู้ใช้</p>
       </div>
 
-      <!-- Dual Support Buttons in Footer -->
       <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-        <!-- TrueMoney Support Button -->
         <a href="https://tmn.app.link/v8tUbBfxn7b" 
            target="_blank" 
            rel="noopener noreferrer sponsored"
@@ -855,7 +826,6 @@ https://example.com/product-02</textarea>
           <svg class="w-3.5 h-3.5 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
         </a>
 
-        <!-- Lazada Partner Support Button -->
         <a href="https://www.lazada.co.th/?t=p-iHeHvwX" 
            target="_blank" 
            rel="noopener noreferrer sponsored"
@@ -868,22 +838,18 @@ https://example.com/product-02</textarea>
     </div>
   </footer>
 
-  <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-2.5 rounded-xl bg-ink text-paper text-xs font-medium shadow-lg flex items-center gap-2">
     <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
     <span id="toastMessage">สำเร็จ</span>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- APPLICATION LOGIC & BILINGUAL (TH/EN) AUTO-DETECTION ENGINE           -->
-  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC -->
   <script>
     'use strict';
 
-    // --- 1. Bilingual Dictionary (TH / EN) ---
     const I18N = {
       th: {
-        metaTitle: 'Gen QR TH — ระบบแปลงลิงก์เป็น QR Code มาตรฐานวิศวกรรม | ปลอดภัย ไม่มีโฆษณา',
+        metaTitle: 'Gen QR TH — ระบบแปลงลิงก์เป็น QR Code ปลอดภัย ไม่มีโฆษณา',
         'nav.badge': 'No Ads • Local',
         'nav.subtitle': 'แปลงลิงก์เป็น QR Code ทันที • ไม่ย่อลิงก์ • ปลอดภัย 100%',
         'nav.tmnFull': 'สนับสนุน (TrueMoney)',
@@ -995,7 +961,7 @@ https://example.com/product-02</textarea>
         'toast.zipSaved': 'ดาวน์โหลดไฟล์ .ZIP สำเร็จแล้ว'
       },
       en: {
-        metaTitle: 'Gen QR TH — Precision Minimal-Matrix QR Code Generator | Private & Ad-Free',
+        metaTitle: 'Gen QR TH — Precision QR Code Generator | Private & Ad-Free',
         'nav.badge': 'No Ads • Local',
         'nav.subtitle': 'Instant Link to QR • Direct URL (No Shorteners) • 100% Client-Side',
         'nav.tmnFull': 'Support (TrueMoney)',
@@ -1113,7 +1079,7 @@ https://example.com/product-02</textarea>
 
     const state = {
       lang: 'th',
-      payload: 'https://www.lazada.co.th',
+      payload: 'https://suttisakteam.github.io/genqr.th/',
       ecLevel: 'L',
       fgColor: '#141413',
       bgColor: '#FFFFFF',
@@ -1125,30 +1091,21 @@ https://example.com/product-02</textarea>
       moduleCount: 21
     };
 
-    // --- 2. Device Language Auto-Detection & Switching ---
     function detectInitialLanguage() {
       const params = new URLSearchParams(window.location.search);
       const urlLang = params.get('lang');
-      if (urlLang === 'en' || urlLang === 'th') {
-        return urlLang;
-      }
+      if (urlLang === 'en' || urlLang === 'th') return urlLang;
 
       try {
         const savedLang = localStorage.getItem(LANG_STORAGE_KEY);
-        if (savedLang === 'en' || savedLang === 'th') {
-          return savedLang;
-        }
+        if (savedLang === 'en' || savedLang === 'th') return savedLang;
       } catch (e) {}
 
       const browserLangs = navigator.languages && navigator.languages.length
         ? navigator.languages
         : [navigator.language || navigator.userLanguage || 'th'];
 
-      const primaryLang = (browserLangs[0] || '').toLowerCase();
-      if (primaryLang.startsWith('th')) {
-        return 'th';
-      }
-      return 'en';
+      return (browserLangs[0] || '').toLowerCase().startsWith('th') ? 'th' : 'en';
     }
 
     function t(key) {
@@ -1162,9 +1119,7 @@ https://example.com/product-02</textarea>
       document.title = t('metaTitle');
 
       if (savePreference) {
-        try {
-          localStorage.setItem(LANG_STORAGE_KEY, state.lang);
-        } catch (e) {}
+        try { localStorage.setItem(LANG_STORAGE_KEY, state.lang); } catch (e) {}
       }
 
       const btnTH = document.getElementById('langBtnTH');
@@ -1197,7 +1152,6 @@ https://example.com/product-02</textarea>
       updateBatchCounter();
     }
 
-    // --- 3. Initialize App ---
     window.addEventListener('DOMContentLoaded', () => {
       const qrInput = document.getElementById('qrInput');
 
@@ -1223,9 +1177,8 @@ https://example.com/product-02</textarea>
       });
     });
 
-    // --- 4. Minimal Matrix QR Calculation ---
     function createMinimalQRMatrix(text, ecLevel) {
-      const cleanText = (text || '').trim() || 'https://www.lazada.co.th';
+      const cleanText = (text || '').trim() || 'https://suttisakteam.github.io/genqr.th/';
       const utf8Text = unescape(encodeURIComponent(cleanText));
       const qr = qrcode(0, ecLevel);
       qr.addData(utf8Text);
@@ -1255,11 +1208,11 @@ https://example.com/product-02</textarea>
     function renderQR() {
       const rawText = state.payload.trim() || ' ';
       const byteLength = new TextEncoder().encode(rawText).length;
-      document.getElementById('charByteCounter').textContent = `${byteLength} bytes`;
+      document.getElementById('charByteCounter').textContent = `\${byteLength} bytes`;
 
       const effectiveEC = state.logoImage ? 'H' : state.ecLevel;
       const ecLabel = document.getElementById('ecStatusLabel');
-      ecLabel.textContent = state.logoImage ? t('status.autoH') : (effectiveEC === 'L' ? t('status.minL') : `Level ${effectiveEC}`);
+      ecLabel.textContent = state.logoImage ? t('status.autoH') : (effectiveEC === 'L' ? t('status.minL') : `Level \${effectiveEC}`);
 
       try {
         const qr = createMinimalQRMatrix(rawText, effectiveEC);
@@ -1268,7 +1221,7 @@ https://example.com/product-02</textarea>
         state.version = version;
         state.moduleCount = count;
 
-        document.getElementById('matrixVersionBadge').textContent = `Version ${version} (${count}×${count})`;
+        document.getElementById('matrixVersionBadge').textContent = `Version \${version} (${count}×${count})`;
 
         drawCanvasQR(qr, count);
         checkContrast();
@@ -1342,7 +1295,7 @@ https://example.com/product-02</textarea>
       const cellSize = size / totalModules;
 
       let elements = [];
-      elements.push(`<rect width="100%" height="100%" fill="${state.bgColor}"/>`);
+      elements.push(`<rect width="100%" height="100%" fill="\${state.bgColor}"/>`);
 
       for (let r = 0; r < count; r++) {
         for (let c = 0; c < count; c++) {
@@ -1355,7 +1308,7 @@ https://example.com/product-02</textarea>
           const isFinder = isFinderPattern(r, c, count);
 
           if (state.shape === 'square' || isFinder) {
-            elements.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${state.fgColor}"/>`);
+            elements.push(`<rect x="\${x}" y="${y}" width="${s}" height="${s}" fill="${state.fgColor}"/>`);
           } else if (state.shape === 'rounded') {
             const rad = (cellSize * 0.32).toFixed(2);
             elements.push(`<rect x="${x}" y="${y}" width="${cellSize.toFixed(2)}" height="${cellSize.toFixed(2)}" rx="${rad}" fill="${state.fgColor}"/>`);
@@ -1373,14 +1326,13 @@ https://example.com/product-02</textarea>
         const logoX = (size - logoBoxSize) / 2;
         const logoY = (size - logoBoxSize) / 2;
         const pad = cellSize * 0.8;
-        elements.push(`<rect x="${(logoX - pad).toFixed(2)}" y="${(logoY - pad).toFixed(2)}" width="${(logoBoxSize + pad * 2).toFixed(2)}" height="${(logoBoxSize + pad * 2).toFixed(2)}" rx="20" fill="${state.bgColor}"/>`);
-        elements.push(`<image href="${state.logoDataUrl}" x="${logoX.toFixed(2)}" y="${logoY.toFixed(2)}" width="${logoBoxSize.toFixed(2)}" height="${logoBoxSize.toFixed(2)}" preserveAspectRatio="xMidYMid meet"/>`);
+        elements.push(`<rect x="\${(logoX - pad).toFixed(2)}" y="${(logoY - pad).toFixed(2)}" width="${(logoBoxSize + pad * 2).toFixed(2)}" height="${(logoBoxSize + pad * 2).toFixed(2)}" rx="20" fill="${state.bgColor}"/>`);
+        elements.push(`<image href="\${state.logoDataUrl}" x="${logoX.toFixed(2)}" y="${logoY.toFixed(2)}" width="${logoBoxSize.toFixed(2)}" height="${logoBoxSize.toFixed(2)}" preserveAspectRatio="xMidYMid meet"/>`);
       }
 
-      return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="1000" height="1000">${elements.join('')}</svg>`;
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 \${size} ${size}" width="1000" height="1000">${elements.join('')}</svg>`;
     }
 
-    // --- 5. UI Controls, Drawers & Modals ---
     function toggleCustomizeDrawer() {
       const drawer = document.getElementById('customizeDrawer');
       const chevron = document.getElementById('customizeChevron');
@@ -1417,7 +1369,6 @@ https://example.com/product-02</textarea>
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- 6. Color, Shape & Logo Handlers ---
     function syncColor(type, hex) {
       if (type === 'fg') {
         state.fgColor = hex.toUpperCase();
@@ -1452,7 +1403,7 @@ https://example.com/product-02</textarea>
     function setModuleShape(shape) {
       state.shape = shape;
       ['square', 'rounded', 'dots'].forEach(s => {
-        const btn = document.getElementById(`shapeBtn-${s}`);
+        const btn = document.getElementById(`shapeBtn-\${s}`);
         if (s === shape) {
           btn.className = 'shape-btn py-2 px-2 rounded-lg text-xs font-medium border border-forest bg-emerald-950/5 text-forest';
         } else {
@@ -1491,7 +1442,7 @@ https://example.com/product-02</textarea>
 
     function updateLogoScale(val) {
       state.logoScale = parseInt(val, 10) / 100;
-      document.getElementById('logoScaleLabel').textContent = `${val}%`;
+      document.getElementById('logoScaleLabel').textContent = `\${val}%`;
       renderQR();
     }
 
@@ -1515,7 +1466,6 @@ https://example.com/product-02</textarea>
       renderQR();
     }
 
-    // --- 7. Contrast Verification ---
     function getLuminance(hex) {
       const rgb = hex.replace('#', '').match(/.{2}/g).map(x => {
         const v = parseInt(x, 16) / 255;
@@ -1535,23 +1485,22 @@ https://example.com/product-02</textarea>
 
       if (ratio < 3.5 || inverted) {
         warnBanner.classList.remove('hidden');
-        badge.innerHTML = `⚠ <span>${t('step2.contrastLow')}</span>`;
+        badge.innerHTML = `⚠ <span>\${t('step2.contrastLow')}</span>`;
         badge.className = 'inline-flex items-center gap-1 text-[11px] font-mono text-amber-900 bg-amber-500/20 px-2 py-0.5 rounded-md';
       } else {
         warnBanner.classList.add('hidden');
-        badge.innerHTML = `✓ <span>${t('step2.scanReady')}</span>`;
+        badge.innerHTML = `✓ <span>\${t('step2.scanReady')}</span>`;
         badge.className = 'inline-flex items-center gap-1 text-[11px] font-mono text-emerald-800 bg-emerald-950/10 px-2 py-0.5 rounded-md';
       }
     }
 
-    // --- 8. Download, Copy & Mobile Native Share ---
     function downloadQR(format) {
       const canvas = document.getElementById('qrCanvas');
-      const filename = `genqr-th-${Date.now().toString().slice(-6)}`;
+      const filename = `genqr-th-\${Date.now().toString().slice(-6)}`;
 
       if (format === 'png') {
         const link = document.createElement('a');
-        link.download = `${filename}.png`;
+        link.download = `\${filename}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
         showToast(t('toast.pngSaved'));
@@ -1562,7 +1511,7 @@ https://example.com/product-02</textarea>
         const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.download = `${filename}.svg`;
+        link.download = `\${filename}.svg`;
         link.href = url;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -1587,19 +1536,13 @@ https://example.com/product-02</textarea>
         const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
         const file = new File([blob], 'genqr-th.png', { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: 'Gen QR TH',
-            text: state.payload,
-            files: [file]
-          });
+          await navigator.share({ title: 'Gen QR TH', text: state.payload, files: [file] });
           showToast(t('toast.shared'));
         } else {
           await copyQRImageToClipboard();
         }
       } catch (err) {
-        if (err && err.name !== 'AbortError') {
-          downloadQR('png');
-        }
+        if (err && err.name !== 'AbortError') downloadQR('png');
       }
     }
 
@@ -1626,12 +1569,11 @@ https://example.com/product-02</textarea>
       renderQR();
     }
 
-    // --- 9. Batch Mode (.ZIP) ---
     function updateBatchCounter() {
       const raw = document.getElementById('batchInput').value;
       const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const unit = state.lang === 'th' ? 'รายการ' : 'items';
-      document.getElementById('batchLineCounter').textContent = `${lines.length} ${unit}`;
+      document.getElementById('batchLineCounter').textContent = `${lines.length}${unit}`;
       return lines;
     }
 
@@ -1681,7 +1623,7 @@ https://example.com/product-02</textarea>
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 2000);
 
-        statusEl.textContent = `✓ (${lines.length})`;
+        statusEl.textContent = `✓ (\${lines.length})`;
         showToast(t('toast.zipSaved'));
       } catch (e) {
         statusEl.textContent = 'Error';
@@ -1708,7 +1650,6 @@ https://example.com/product-02</textarea>
       }
     }
 
-    // --- 10. Local History Vault ---
     function getHistory() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -1767,7 +1708,7 @@ https://example.com/product-02</textarea>
         const meta = document.createElement('p');
         meta.className = 'text-[10px] font-mono text-stone mt-0.5';
         const locale = state.lang === 'th' ? 'th-TH' : 'en-US';
-        meta.textContent = `V${item.version || 1} • EC-${item.ecLevel || 'L'} • ${new Date(item.timestamp).toLocaleString(locale)}`;
+        meta.textContent = `V\${item.version || 1} • EC-${item.ecLevel \vert{}\vert{} 'L'} •${new Date(item.timestamp).toLocaleString(locale)}`;
 
         left.appendChild(title);
         left.appendChild(meta);
@@ -1805,6 +1746,7 @@ https://example.com/product-02</textarea>
       });
     }
 
+    function clearAllHistory`
     function clearAllHistory() {
       localStorage.removeItem(STORAGE_KEY);
       renderHistory();
@@ -1821,7 +1763,6 @@ https://example.com/product-02</textarea>
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    // --- 11. Toast Notification ---
     let toastTimer = null;
     function showToast(msg) {
       const toast = document.getElementById('toast');
