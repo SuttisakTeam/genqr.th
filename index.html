@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Gen QR TH — ระบบแปลงลิงก์เป็น QR Code มาตรฐานวิศวกรรม | ปลอดภัย ไม่มีโฆษณา</title>
+  <meta name="description" content="สร้าง QR Code จากลิงก์อย่างปลอดภัย 100% ประมวลผลในเครื่อง ใช้พื้นที่จุดน้อยที่สุดโดยไม่ย่อลิงก์ ปรับแต่งสีและโลโก้ได้ รองรับการดาวน์โหลดหลายรายการพร้อมกัน" />
+  
+  <!-- Strict Content Security Policy (Defense-in-Depth) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' blob:;" />
+
+  <!-- Google Fonts: Plus Jakarta Sans, IBM Plex Sans Thai, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper: '#FAF9F5',
+            surface: '#FFFFFF',
+            subtle: '#F3F1EC',
+            ink: '#141413',
+            charcoal: '#4A4946',
+            stone: '#787672',
+            forest: '#0F5338',
+            forestHover: '#0A3B27',
+            borderWarm: '#E6E4DD'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"IBM Plex Sans Thai"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          boxShadow: {
+            'studio': '0 10px 30px -10px rgba(20, 20, 19, 0.05), 0 1px 3px rgba(20, 20, 19, 0.03)',
+            'card': '0 4px 16px -4px rgba(20, 20, 19, 0.04)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Reliable QR Matrix Engine (qrcode-generator) & Client-side ZIP Engine (JSZip) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <style>
+    body {
+      background-color: #FAF9F5;
+      color: #141413;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Subtle Blueprint Grid for QR Preview Stage */
+    .qr-stage-grid {
+      background-color: #F3F1EC;
+      background-image: 
+        linear-gradient(to right, rgba(20, 20, 19, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(20, 20, 19, 0.04) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    /* Custom Color Input Styling */
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+      border: 1px solid #E6E4DD;
+      border-radius: 6px;
+    }
+    /* Smooth Drawer Transition */
+    .drawer-content {
+      transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    /* Hide scrollbar for mobile horizontal action bar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Custom Scrollbar for desktop */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F3F1EC;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D0CEC7;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #787672;
+    }
+    /* Prevent iOS input zoom on focus by ensuring >= 16px on mobile */
+    @media screen and (max-width: 768px) {
+      input[type="text"], textarea, select {
+        font-size: 16px !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-forest selection:text-white">
+
+  <!-- TOP UTILITY & SECURITY BAR (Responsive + Bilingual + Dual Support Links) -->
+  <header class="sticky top-0 z-30 bg-paper/95 backdrop-blur-md border-b border-borderWarm">
+    <div class="max-w-5xl mx-auto px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <a href="#" onclick="resetToSimpleView(); return false;" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-ink text-paper flex items-center justify-center font-mono font-semibold text-xs sm:text-sm tracking-tighter shadow-sm hover:bg-forest transition-colors shrink-0">
+          QR
+        </a>
+        <div class="truncate">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="font-bold text-sm sm:text-base tracking-tight text-ink">Gen QR TH</span>
+            <span class="text-[9px] sm:text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-950/10 text-forest font-semibold tracking-wider shrink-0" data-i18n="nav.badge">
+              No Ads • Local
+            </span>
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-stone truncate hidden sm:block" data-i18n="nav.subtitle">
+            แปลงลิงก์เป็น QR Code ทันที • ไม่ย่อลิงก์ • ปลอดภัย 100%
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Language Switcher & Dual Support Links (TrueMoney + Lazada) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- Language Switcher Pill -->
+        <div class="inline-flex items-center bg-subtle p-0.5 rounded-lg border border-borderWarm" role="group" aria-label="Language Switcher">
+          <button onclick="setLanguage('th')" id="langBtnTH" class="px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition-all bg-surface text-ink shadow-sm">
+            TH
+          </button>
+          <button onclick="setLanguage('en')" id="langBtnEN" class="px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition-all text-stone hover:text-ink">
+            EN
+          </button>
+        </div>
+
+        <!-- Support Option 1: TrueMoney Link -->
+        <a href="https://tmn.app.link/v8tUbBfxn7b" 
+           target="_blank" 
+           rel="noopener noreferrer sponsored"
+           class="group inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-50/90 hover:bg-orange-100/90 text-orange-950 border border-orange-200 hover:border-orange-300 transition-all"
+           title="Support via TrueMoney">
+          <span class="w-2 h-2 rounded-full bg-orange-500 group-hover:scale-110 transition-transform shrink-0"></span>
+          <span class="hidden md:inline" data-i18n="nav.tmnFull">สนับสนุน (TrueMoney)</span>
+          <span class="md:hidden text-[11px] font-semibold" data-i18n="nav.tmnShort">TrueMoney</span>
+          <svg class="w-3 h-3 opacity-60 shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- Support Option 2: Lazada Partner Link -->
+        <a href="https://www.lazada.co.th/?t=p-iHeHvwX" 
+           target="_blank" 
+           rel="noopener noreferrer sponsored"
+           class="group inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-subtle hover:bg-amber-50/90 text-charcoal hover:text-amber-900 border border-borderWarm hover:border-amber-300 transition-all"
+           title="Support Server Costs via Lazada Partner">
+          <span class="w-2 h-2 rounded-full bg-amber-500 group-hover:scale-110 transition-transform shrink-0"></span>
+          <span class="hidden lg:inline" data-i18n="nav.sponsorFull">สนับสนุน (Lazada)</span>
+          <span class="lg:hidden text-[11px]" data-i18n="nav.sponsorShort">Lazada</span>
+          <svg class="w-3 h-3 opacity-60 shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE: ULTRA-SIMPLE FIRST IMPRESSION -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-3.5 sm:px-6 py-5 sm:py-10">
+
+    <!-- Hero Headline -->
+    <div class="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-end justify-between gap-2 sm:gap-3">
+      <div>
+        <h1 class="text-xl sm:text-3xl font-bold tracking-tight text-ink" data-i18n="hero.title">
+          วางลิงก์ รับ QR Code ทันที
+        </h1>
+        <p class="text-xs sm:text-sm text-charcoal mt-0.5 sm:mt-1" data-i18n="hero.desc">
+          สร้าง QR ที่ใช้จุดน้อยที่สุด สแกนติดไว ลิงก์ตรงไม่ผ่านเว็บย่อลิงก์ ไม่มีวันหมดอายุ
+        </p>
+      </div>
+
+      <!-- Quick jump to How-To Guide -->
+      <a href="#how-to-guide" class="inline-flex items-center gap-1.5 text-xs font-medium text-forest hover:underline self-start md:self-auto">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span data-i18n="hero.guideLink">ดูคู่มือวิธีใช้งานพร้อมภาพประกอบด้านล่าง</span>
+      </a>
+    </div>
+
+    <!-- PRIMARY CARD: STEP 1 (INPUT) & STEP 2 (QR + DOWNLOAD) -->
+    <div class="bg-surface rounded-2xl border border-borderWarm shadow-studio overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12">
+        
+        <!-- LEFT SIDE: Simple Input & Action Command Buttons -->
+        <div class="lg:col-span-7 p-4 sm:p-7 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-borderWarm">
+          
+          <div class="space-y-4">
+            <!-- Step 1 Label -->
+            <div class="flex items-center justify-between gap-2">
+              <label for="qrInput" class="flex items-center gap-2 text-xs sm:text-sm font-bold text-ink">
+                <span class="w-5 h-5 rounded-full bg-forest text-white text-xs font-mono flex items-center justify-center shrink-0">1</span>
+                <span data-i18n="step1.label">วางลิงก์เว็บไซต์ หรือข้อความที่นี่</span>
+              </label>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="pasteFromClipboard()" class="text-xs font-medium px-2.5 py-1.5 sm:py-1 rounded-md bg-subtle hover:bg-borderWarm text-charcoal transition-colors flex items-center gap-1 active:scale-95">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                  <span data-i18n="step1.pasteBtn">วาง (Paste)</span>
+                </button>
+                <button onclick="clearPayload()" class="text-xs font-medium px-2 py-1.5 sm:py-1 rounded-md text-stone hover:text-red-700 hover:bg-red-50 transition-colors" data-i18n="step1.clearBtn">
+                  ล้าง
+                </button>
+              </div>
+            </div>
+
+            <!-- Main URL / Text Input -->
+            <div class="relative">
+              <textarea 
+                id="qrInput" 
+                rows="3"
+                placeholder="https://..."
+                class="w-full rounded-xl bg-paper border-2 border-borderWarm focus:border-forest focus:bg-surface px-3.5 py-3 text-base font-mono text-ink placeholder:text-stone/60 focus:outline-none transition-all resize-none"
+              >https://www.lazada.co.th</textarea>
+            </div>
+
+            <!-- Minimal Data Area Status Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg bg-subtle/70 border border-borderWarm/70 text-[11px] sm:text-xs text-charcoal">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                <span><span data-i18n="status.prefix">โหมดประหยัดพื้นที่จุด:</span> <strong id="ecStatusLabel" class="font-semibold text-ink">Level L (7%)</strong></span>
+              </div>
+              <div class="flex items-center gap-2 font-mono text-[11px] text-stone">
+                <span id="charByteCounter">24 bytes</span>
+                <span>•</span>
+                <span id="matrixVersionBadge" class="text-forest font-semibold">Version 2 (25×25)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEPARATE COMMAND BUTTONS BAR (Horizontal Touch Scroll on Mobile, Wrap on Desktop) -->
+          <div class="mt-6 pt-5 border-t border-borderWarm">
+            <div class="flex items-center justify-between mb-2.5">
+              <p class="text-[11px] font-mono uppercase tracking-wider text-stone" data-i18n="tools.header">
+                เครื่องมือเพิ่มเติม (กดเลือกเมื่อต้องการใช้งาน)
+              </p>
+              <span class="text-[10px] text-stone sm:hidden font-mono" data-i18n="tools.swipeHint">เลื่อนซ้าย-ขวา →</span>
+            </div>
+            
+            <div class="flex sm:flex-wrap items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+              
+              <!-- Button 1: Toggle Customize Drawer -->
+              <button 
+                id="btnToggleCustomize"
+                onclick="toggleCustomizeDrawer()" 
+                class="shrink-0 inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-borderWarm bg-paper hover:bg-subtle text-ink transition-all active:scale-95"
+              >
+                <svg class="w-4 h-4 text-forest shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span data-i18n="tools.customizeBtn">ปรับแต่งสี / ใส่โลโก้</span>
+                <svg id="customizeChevron" class="w-3.5 h-3.5 text-stone transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+
+              <!-- Button 2: Open Batch Modal -->
+              <button 
+                onclick="openModal('batchModal')" 
+                class="shrink-0 inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-borderWarm bg-paper hover:bg-subtle text-ink transition-all active:scale-95"
+              >
+                <svg class="w-4 h-4 text-forest shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span data-i18n="tools.batchBtn">สร้างหลาย QR พร้อมกัน (.ZIP)</span>
+              </button>
+
+              <!-- Button 3: Open History Modal -->
+              <button 
+                onclick="openModal('historyModal')" 
+                class="shrink-0 inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-borderWarm bg-paper hover:bg-subtle text-ink transition-all active:scale-95"
+              >
+                <svg class="w-4 h-4 text-forest shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span data-i18n="tools.historyBtn">ประวัติของฉัน</span>
+                <span id="historyCountBadge" class="px-1.5 py-0.5 text-[10px] font-mono rounded-md bg-subtle text-charcoal">0</span>
+              </button>
+
+              <!-- Button 4: Scroll to How-to Guide -->
+              <a 
+                href="#how-to-guide"
+                class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-medium text-stone hover:text-ink hover:bg-subtle transition-all"
+              >
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span data-i18n="tools.guideBtn">วิธีใช้</span>
+              </a>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDE: Instant QR Preview & Primary Download -->
+        <div class="lg:col-span-5 p-4 sm:p-6 bg-subtle/40 flex flex-col items-center justify-between">
+          
+          <!-- Step 2 Header -->
+          <div class="w-full flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-ink">
+              <span class="w-5 h-5 rounded-full bg-forest text-white text-xs font-mono flex items-center justify-center shrink-0">2</span>
+              <span data-i18n="step2.label">สแกน หรือ กดดาวน์โหลด</span>
+            </div>
+            <span id="contrastStatusBadge" class="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-800 bg-emerald-950/10 px-2 py-0.5 rounded-md">
+              ✓ <span data-i18n="step2.scanReady">สแกนติดง่าย</span>
+            </span>
+          </div>
+
+          <!-- QR Canvas Stage -->
+          <div class="w-full py-4 px-4 rounded-xl qr-stage-grid border border-borderWarm flex flex-col items-center justify-center">
+            <div class="relative p-3 bg-white rounded-xl shadow-card border border-borderWarm/60">
+              <canvas id="qrCanvas" width="1000" height="1000" class="w-44 h-44 sm:w-52 sm:h-52 rounded-lg block"></canvas>
+            </div>
+          </div>
+
+          <!-- Contrast Warning Banner (Hidden unless low contrast) -->
+          <div id="contrastWarningBanner" class="hidden w-full mt-3 p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-[11px] text-amber-900 flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span data-i18n="step2.contrastWarn">สี QR กับพื้นหลังใกล้เคียงกันเกินไป อาจสแกนติดยาก</span>
+          </div>
+
+          <!-- Primary Download Buttons -->
+          <div class="w-full mt-4 space-y-2">
+            <div class="grid grid-cols-2 gap-2.5">
+              <button onclick="downloadQR('png')" class="py-3 px-4 rounded-xl bg-forest hover:bg-forestHover text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span data-i18n="btn.downloadPng">ดาวน์โหลด PNG</span>
+              </button>
+              <button onclick="downloadQR('svg')" class="py-3 px-4 rounded-xl bg-ink hover:bg-charcoal text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <span data-i18n="btn.downloadSvg">ดาวน์โหลด SVG</span>
+              </button>
+            </div>
+
+            <!-- Secondary Quick Actions: Copy, Share (Mobile Friendly), Save -->
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="copyQRImageToClipboard()" class="py-2 px-2 rounded-lg bg-surface hover:bg-subtle text-charcoal border border-borderWarm font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-colors active:scale-95">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span id="copyBtnText" class="truncate" data-i18n="btn.copyImg">คัดลอกรูป</span>
+              </button>
+              <button onclick="shareQRImage()" class="py-2 px-2 rounded-lg bg-surface hover:bg-subtle text-charcoal border border-borderWarm font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-colors active:scale-95">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                <span class="truncate" data-i18n="btn.shareImg">แชร์ QR</span>
+              </button>
+              <button onclick="saveCurrentToHistory()" class="py-2 px-2 rounded-lg bg-surface hover:bg-subtle text-charcoal border border-borderWarm font-medium text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-colors active:scale-95">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                <span class="truncate" data-i18n="btn.saveHist">บันทึกประวัติ</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- EXPANDABLE DRAWER: CUSTOMIZE COLOR, SHAPE & LOGO (Hidden by default) -->
+      <div id="customizeDrawer" class="hidden border-t border-borderWarm bg-paper/70 p-4 sm:p-7">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold text-ink" data-i18n="drawer.title">ตั้งค่ารูปแบบ QR Code (สี / รูปทรง / โลโก้ตรงกลาง)</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="resetStyles()" class="text-xs text-stone hover:text-ink underline" data-i18n="drawer.resetBtn">รีเซ็ตค่าเริ่มต้น</button>
+            <button onclick="toggleCustomizeDrawer()" class="text-xs font-medium px-2.5 py-1 rounded-md bg-subtle hover:bg-borderWarm text-charcoal" data-i18n="drawer.hideBtn">ซ่อนหน้าต่างนี้ ✕</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Column 1: Colors -->
+          <div class="bg-surface p-4 rounded-xl border border-borderWarm space-y-3">
+            <label class="block text-xs font-semibold text-ink" data-i18n="drawer.col1Title">1. สีจุด QR และสีพื้นหลัง</label>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <span class="block text-[11px] text-stone mb-1" data-i18n="drawer.fgLabel">สีจุด (Foreground)</span>
+                <div class="flex items-center gap-1.5 p-1.5 rounded-lg bg-paper border border-borderWarm">
+                  <input type="color" id="fgColorPicker" value="#141413" class="w-6 h-6 rounded shrink-0" onchange="syncColor('fg', this.value)" />
+                  <input type="text" id="fgColorHex" value="#141413" maxlength="7" class="w-full bg-transparent font-mono text-xs uppercase focus:outline-none" oninput="syncColorHex('fg', this.value)" />
+                </div>
+              </div>
+              <div>
+                <span class="block text-[11px] text-stone mb-1" data-i18n="drawer.bgLabel">สีพื้นหลัง (Background)</span>
+                <div class="flex items-center gap-1.5 p-1.5 rounded-lg bg-paper border border-borderWarm">
+                  <input type="color" id="bgColorPicker" value="#FFFFFF" class="w-6 h-6 rounded shrink-0" onchange="syncColor('bg', this.value)" />
+                  <input type="text" id="bgColorHex" value="#FFFFFF" maxlength="7" class="w-full bg-transparent font-mono text-xs uppercase focus:outline-none" oninput="syncColorHex('bg', this.value)" />
+                </div>
+              </div>
+            </div>
+            <!-- Quick Color Presets -->
+            <div class="pt-1 flex flex-wrap gap-1.5">
+              <button onclick="applyColorPreset('#141413', '#FFFFFF')" class="px-2 py-1 rounded text-[11px] font-medium bg-subtle hover:bg-borderWarm text-ink" data-i18n="preset.black">มาตรฐาน (ดำ)</button>
+              <button onclick="applyColorPreset('#0F5338', '#FAF9F5')" class="px-2 py-1 rounded text-[11px] font-medium bg-emerald-950/10 text-forest" data-i18n="preset.forest">เขียว Forest</button>
+              <button onclick="applyColorPreset('#1E3A8A', '#FFFFFF')" class="px-2 py-1 rounded text-[11px] font-medium bg-blue-950/10 text-blue-900" data-i18n="preset.navy">น้ำเงินเข้ม</button>
+              <button onclick="applyColorPreset('#7C2D12', '#FFFBEB')" class="px-2 py-1 rounded text-[11px] font-medium bg-amber-950/10 text-amber-900" data-i18n="preset.earth">น้ำตาลเอิร์ธโทน</button>
+            </div>
+          </div>
+
+          <!-- Column 2: Shape & Matrix Density -->
+          <div class="bg-surface p-4 rounded-xl border border-borderWarm space-y-3">
+            <label class="block text-xs font-semibold text-ink" data-i18n="drawer.col2Title">2. รูปทรงจุด และความหนาแน่น</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button onclick="setModuleShape('square')" id="shapeBtn-square" class="shape-btn py-2 px-2 rounded-lg text-xs font-medium border border-forest bg-emerald-950/5 text-forest" data-i18n="shape.square">
+                เหลี่ยมคมชัด
+              </button>
+              <button onclick="setModuleShape('rounded')" id="shapeBtn-rounded" class="shape-btn py-2 px-2 rounded-lg text-xs font-medium border border-borderWarm bg-paper text-charcoal" data-i18n="shape.rounded">
+                เหลี่ยมมุมมน
+              </button>
+              <button onclick="setModuleShape('dots')" id="shapeBtn-dots" class="shape-btn py-2 px-2 rounded-lg text-xs font-medium border border-borderWarm bg-paper text-charcoal" data-i18n="shape.dots">
+                จุดวงกลม
+              </button>
+            </div>
+            <div class="pt-1">
+              <div class="flex items-center justify-between text-[11px] text-stone mb-1">
+                <span data-i18n="drawer.ecLabel">ระดับสำรองข้อมูล (Error Correction)</span>
+              </div>
+              <select id="ecLevelSelect" onchange="setECLevel(this.value)" class="w-full rounded-lg bg-paper border border-borderWarm px-2.5 py-1.5 text-xs text-ink focus:outline-none focus:border-forest">
+                <option value="L" selected id="ecOptL">Level L (7%) — จุดน้อยที่สุด สแกนไวที่สุด (แนะนำ)</option>
+                <option value="M" id="ecOptM">Level M (15%) — สมดุลมาตรฐาน</option>
+                <option value="Q" id="ecOptQ">Level Q (25%) — ทนรอยขีดข่วน</option>
+                <option value="H" id="ecOptH">Level H (30%) — สำหรับใส่โลโก้ตรงกลาง</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Column 3: Center Logo -->
+          <div class="bg-surface p-4 rounded-xl border border-borderWarm space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-semibold text-ink" data-i18n="drawer.col3Title">3. โลโก้ตรงกลาง QR</label>
+              <button id="removeLogoBtn" onclick="removeLogo()" class="hidden text-[11px] text-red-700 hover:underline font-medium" data-i18n="drawer.removeLogo">ลบโลโก้</button>
+            </div>
+
+            <label class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-dashed border-borderWarm bg-paper hover:border-forest cursor-pointer transition-colors text-xs text-charcoal">
+              <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="hidden" onchange="handleLogoUpload(event)" />
+              <svg class="w-4 h-4 text-forest shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span id="logoFileName" class="truncate" data-i18n="drawer.uploadBtn">เลือกไฟล์รูปโลโก้ (PNG/JPG/SVG)</span>
+            </label>
+
+            <div id="logoScaleWrapper" class="opacity-40 pointer-events-none">
+              <div class="flex justify-between text-[11px] text-stone mb-1">
+                <span data-i18n="drawer.logoSize">ขนาดโลโก้</span>
+                <span id="logoScaleLabel" class="font-mono">20%</span>
+              </div>
+              <input type="range" id="logoScaleRange" min="12" max="25" value="20" class="w-full accent-forest cursor-pointer" oninput="updateLogoScale(this.value)" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VISUAL HOW-TO GUIDE SECTION (คู่มือวิธีใช้งานพร้อมรูปภาพประกอบ)           -->
+    <!-- ===================================================================== -->
+    <section id="how-to-guide" class="mt-10 sm:mt-16 pt-8 sm:pt-10 border-t border-borderWarm">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-3">
+        <div>
+          <span class="text-[11px] font-mono uppercase tracking-widest text-forest font-semibold" data-i18n="guide.eyebrow">Step-by-Step Visual Guide</span>
+          <h2 class="text-lg sm:text-2xl font-bold text-ink mt-1" data-i18n="guide.title">วิธีใช้งาน Gen QR TH (คู่มือภาพประกอบเข้าใจง่าย)</h2>
+        </div>
+        <p class="text-xs text-stone" data-i18n="guide.subtitle">ไม่ต้องสมัครสมาชิก • ไม่มีลายน้ำ • ลิงก์ไม่มีวันหมดอายุ</p>
+      </div>
+
+      <!-- PART 1: 3-Step Basic Workflow with Visual Illustrations -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-8 sm:mb-10">
+        
+        <!-- Step 1 Visual Card -->
+        <div class="bg-surface rounded-2xl border border-borderWarm overflow-hidden shadow-card flex flex-col">
+          <div class="bg-subtle/70 border-b border-borderWarm p-4 flex items-center justify-center h-40 sm:h-44">
+            <svg class="w-full max-w-[240px] h-auto" viewBox="0 0 240 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="14" width="224" height="102" rx="10" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+              <circle cx="22" cy="28" r="4" fill="#0F5338"/>
+              <rect x="32" y="25" width="75" height="6" rx="3" fill="#141413"/>
+              <rect x="172" y="20" width="48" height="18" rx="4" fill="#0F5338"/>
+              <text x="196" y="32" text-anchor="middle" fill="#FFFFFF" font-family="monospace" font-size="8" font-weight="bold">PASTE</text>
+              <rect x="18" y="45" width="204" height="56" rx="6" fill="#FAF9F5" stroke="#0F5338" stroke-width="1.5" stroke-dasharray="3 2"/>
+              <text x="28" y="68" fill="#0F5338" font-family="monospace" font-size="10" font-weight="600">https://your-link.com</text>
+              <line x1="158" y1="58" x2="158" y2="72" stroke="#141413" stroke-width="1.5"/>
+              <rect x="28" y="80" width="110" height="5" rx="2.5" fill="#E6E4DD"/>
+              <path d="M198 42L204 56L208 51L213 56L215 54L210 49L215 47L198 42Z" fill="#141413"/>
+            </svg>
+          </div>
+          <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-mono font-bold text-forest bg-emerald-950/10 px-2.5 py-1 rounded-md">STEP 01</span>
+                <span class="text-[11px] text-stone font-mono" data-i18n="guide.step1Tag">วางลิงก์</span>
+              </div>
+              <h3 class="font-bold text-sm text-ink mb-1.5" data-i18n="guide.step1Title">วางลิงก์ในช่องหมายเลข 1</h3>
+              <p class="text-xs text-charcoal leading-relaxed" data-i18n="guide.step1Desc">
+                คัดลอกลิงก์เว็บไซต์ หน้าสินค้า หรือข้อความที่ต้องการ แล้วกดปุ่ม <strong>"วาง (Paste)"</strong> ระบบจะอ่านข้อมูลในเครื่องของคุณทันที
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 Visual Card -->
+        <div class="bg-surface rounded-2xl border border-borderWarm overflow-hidden shadow-card flex flex-col">
+          <div class="bg-subtle/70 border-b border-borderWarm p-4 flex items-center justify-center h-40 sm:h-44">
+            <svg class="w-full max-w-[240px] h-auto" viewBox="0 0 240 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="20" y="12" width="200" height="106" rx="10" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+              <rect x="34" y="24" width="82" height="82" rx="6" fill="#FAF9F5" stroke="#141413" stroke-width="1.5"/>
+              <rect x="42" y="32" width="20" height="20" rx="2" stroke="#141413" stroke-width="3" fill="none"/>
+              <rect x="48" y="38" width="8" height="8" fill="#141413"/>
+              <rect x="88" y="32" width="20" height="20" rx="2" stroke="#141413" stroke-width="3" fill="none"/>
+              <rect x="94" y="38" width="8" height="8" fill="#141413"/>
+              <rect x="42" y="78" width="20" height="20" rx="2" stroke="#141413" stroke-width="3" fill="none"/>
+              <rect x="48" y="84" width="8" height="8" fill="#141413"/>
+              <rect x="70" y="34" width="6" height="6" fill="#0F5338"/>
+              <rect x="70" y="46" width="6" height="6" fill="#141413"/>
+              <rect x="70" y="60" width="8" height="8" rx="1" fill="#0F5338"/>
+              <rect x="82" y="62" width="6" height="6" fill="#141413"/>
+              <rect x="96" y="62" width="6" height="6" fill="#0F5338"/>
+              <rect x="44" y="62" width="6" height="6" fill="#141413"/>
+              <rect x="56" y="62" width="6" height="6" fill="#0F5338"/>
+              <rect x="72" y="78" width="6" height="6" fill="#141413"/>
+              <rect x="86" y="84" width="10" height="10" rx="2" fill="#0F5338"/>
+              <rect x="128" y="30" width="76" height="20" rx="4" fill="#ECFDF5" stroke="#A7F3D0"/>
+              <text x="166" y="43" text-anchor="middle" fill="#0F5338" font-family="monospace" font-size="8.5" font-weight="bold">LEVEL L (7%)</text>
+              <text x="128" y="66" fill="#141413" font-family="sans-serif" font-size="9" font-weight="bold">Minimal Matrix</text>
+              <text x="128" y="80" fill="#787672" font-family="sans-serif" font-size="8">Big clear dots</text>
+              <text x="128" y="92" fill="#0F5338" font-family="monospace" font-size="8" font-weight="bold">✓ Direct URL</text>
+            </svg>
+          </div>
+          <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-mono font-bold text-forest bg-emerald-950/10 px-2.5 py-1 rounded-md">STEP 02</span>
+                <span class="text-[11px] text-stone font-mono" data-i18n="guide.step2Tag">แปลงอัตโนมัติ</span>
+              </div>
+              <h3 class="font-bold text-sm text-ink mb-1.5" data-i18n="guide.step2Title">ระบบสร้าง QR จุดน้อยที่สุดทันที</h3>
+              <p class="text-xs text-charcoal leading-relaxed" data-i18n="guide.step2Desc">
+                ไม่ต้องกดปุ่มตกลง ระบบคำนวณตาราง <strong>Level L</strong> ให้จุดมีขนาดใหญ่และโปร่งที่สุดโดยไม่ย่อลิงก์ ทำให้สแกนติดง่ายแม้พิมพ์ขนาดเล็ก
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 Visual Card -->
+        <div class="bg-surface rounded-2xl border border-borderWarm overflow-hidden shadow-card flex flex-col">
+          <div class="bg-subtle/70 border-b border-borderWarm p-4 flex items-center justify-center h-40 sm:h-44">
+            <svg class="w-full max-w-[240px] h-auto" viewBox="0 0 240 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="14" y="14" width="212" height="102" rx="10" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+              <rect x="26" y="28" width="90" height="34" rx="7" fill="#0F5338"/>
+              <path d="M44 41V49M44 49L40 45M44 49L48 45" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <text x="78" y="48" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="9.5" font-weight="bold">PNG</text>
+              <rect x="124" y="28" width="90" height="34" rx="7" fill="#141413"/>
+              <text x="169" y="48" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="9.5" font-weight="bold">SVG Vector</text>
+              <rect x="26" y="72" width="188" height="28" rx="6" fill="#FAF9F5" stroke="#E6E4DD"/>
+              <circle cx="42" cy="86" r="6" fill="#ECFDF5"/>
+              <path d="M39 86L41 88L45 84" stroke="#0F5338" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <text x="56" y="89" fill="#4A4946" font-family="monospace" font-size="8.5" font-weight="600">1000×1000px • Print &amp; Share</text>
+            </svg>
+          </div>
+          <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-mono font-bold text-forest bg-emerald-950/10 px-2.5 py-1 rounded-md">STEP 03</span>
+                <span class="text-[11px] text-stone font-mono" data-i18n="guide.step3Tag">บันทึก / แชร์</span>
+              </div>
+              <h3 class="font-bold text-sm text-ink mb-1.5" data-i18n="guide.step3Title">กดดาวน์โหลด หรือ แชร์เข้าแอป</h3>
+              <p class="text-xs text-charcoal leading-relaxed" data-i18n="guide.step3Desc">
+                เลือก <strong>"ดาวน์โหลด PNG"</strong> สำหรับใช้งานทั่วไป, <strong>"แชร์ QR"</strong> บนมือถือเพื่อส่งเข้า LINE/บันทึกเข้าเครื่อง หรือ <strong>"SVG"</strong> สำหรับงานพิมพ์
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PART 2: Visual Guide for the 3 Special Feature Buttons -->
+      <div class="mb-4">
+        <h3 class="text-sm sm:text-base font-bold text-ink" data-i18n="guide.toolsTitle">คู่มือการใช้ปุ่มคำสั่งเสริม (เมื่อต้องการปรับแต่งหรือสร้างจำนวนมาก)</h3>
+        <p class="text-xs text-stone mt-0.5" data-i18n="guide.toolsSub">คลิกที่ปุ่มคำสั่งใต้ช่องวางลิงก์เพื่อเปิดใช้งานแต่ละโหมด</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+        
+        <!-- Tool 1 Visual Card: Customize Color & Logo -->
+        <div class="bg-surface rounded-2xl border border-borderWarm p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div class="rounded-xl bg-paper border border-borderWarm p-3 mb-4 flex items-center justify-center h-32">
+              <svg class="w-full max-w-[220px] h-auto" viewBox="0 0 220 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="28" cy="30" r="10" fill="#141413"/>
+                <circle cx="54" cy="30" r="10" fill="#0F5338" stroke="#141413" stroke-width="2"/>
+                <circle cx="80" cy="30" r="10" fill="#1E3A8A"/>
+                <rect x="18" y="54" width="22" height="22" rx="2" fill="#141413"/>
+                <rect x="46" y="54" width="22" height="22" rx="7" fill="#0F5338"/>
+                <circle cx="85" cy="65" r="11" fill="#141413"/>
+                <rect x="128" y="14" width="72" height="68" rx="8" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+                <rect x="136" y="22" width="14" height="14" rx="2" stroke="#0F5338" stroke-width="2.5"/>
+                <rect x="178" y="22" width="14" height="14" rx="2" stroke="#0F5338" stroke-width="2.5"/>
+                <rect x="136" y="60" width="14" height="14" rx="2" stroke="#0F5338" stroke-width="2.5"/>
+                <rect x="150" y="34" width="28" height="28" rx="6" fill="#0F5338"/>
+                <text x="164" y="51" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="7.5" font-weight="bold">LOGO</text>
+              </svg>
+            </div>
+            <h4 class="font-bold text-xs sm:text-sm text-ink flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-forest"></span>
+              <span data-i18n="guide.tool1Title">ปุ่ม "ปรับแต่งสี / ใส่โลโก้"</span>
+            </h4>
+            <p class="text-xs text-charcoal mt-1.5 leading-relaxed" data-i18n="guide.tool1Desc">
+              เปลี่ยนสีจุด QR รูปทรงโมดูล (เหลี่ยม/มน/วงกลม) และอัปโหลดโลโก้แบรนด์ไว้ตรงกลาง โดยระบบจะปรับโหมดสำรองข้อมูลเป็น <strong>Level H (30%)</strong> อัตโนมัติเพื่อให้สแกนติด 100%
+            </p>
+          </div>
+          <button onclick="toggleCustomizeDrawer(); window.scrollTo({top: 0, behavior: 'smooth'});" class="mt-4 w-full py-2 rounded-lg bg-subtle hover:bg-borderWarm text-xs font-semibold text-ink transition-colors" data-i18n="guide.tool1Btn">
+            ทดลองเปิดแผงปรับแต่งสี ↑
+          </button>
+        </div>
+
+        <!-- Tool 2 Visual Card: Batch Mode .ZIP -->
+        <div class="bg-surface rounded-2xl border border-borderWarm p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div class="rounded-xl bg-paper border border-borderWarm p-3 mb-4 flex items-center justify-center h-32">
+              <svg class="w-full max-w-[220px] h-auto" viewBox="0 0 220 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="12" y="16" width="88" height="64" rx="6" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+                <rect x="20" y="26" width="60" height="5" rx="2.5" fill="#0F5338"/>
+                <rect x="20" y="38" width="70" height="5" rx="2.5" fill="#141413"/>
+                <rect x="20" y="50" width="52" height="5" rx="2.5" fill="#0F5338"/>
+                <rect x="20" y="62" width="66" height="5" rx="2.5" fill="#141413"/>
+                <path d="M108 48H126M126 48L121 43M126 48L121 53" stroke="#0F5338" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="136" y="16" width="72" height="64" rx="8" fill="#0F5338"/>
+                <rect x="148" y="26" width="48" height="16" rx="3" fill="#FFFFFF"/>
+                <text x="172" y="37" text-anchor="middle" fill="#0F5338" font-family="monospace" font-size="8" font-weight="bold">001.PNG</text>
+                <rect x="148" y="46" width="48" height="16" rx="3" fill="#FFFFFF" fill-opacity="0.85"/>
+                <text x="172" y="57" text-anchor="middle" fill="#141413" font-family="monospace" font-size="8" font-weight="bold">002.PNG</text>
+                <text x="172" y="74" text-anchor="middle" fill="#A7F3D0" font-family="monospace" font-size="7.5" font-weight="bold">BATCH .ZIP</text>
+              </svg>
+            </div>
+            <h4 class="font-bold text-xs sm:text-sm text-ink flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-forest"></span>
+              <span data-i18n="guide.tool2Title">ปุ่ม "สร้างหลาย QR พร้อมกัน (.ZIP)"</span>
+            </h4>
+            <p class="text-xs text-charcoal mt-1.5 leading-relaxed" data-i18n="guide.tool2Desc">
+              ต้องการทำ QR Code 10–200 ลิงก์พร้อมกัน? กดปุ่มนี้แล้ววางลิงก์บรรทัดละ 1 รายการ ระบบจะสร้างและรวมเป็นไฟล์ <strong>.ZIP</strong> ให้โหลดในคลิกเดียว
+            </p>
+          </div>
+          <button onclick="openModal('batchModal')" class="mt-4 w-full py-2 rounded-lg bg-subtle hover:bg-borderWarm text-xs font-semibold text-ink transition-colors" data-i18n="guide.tool2Btn">
+            เปิดโหมดสร้างหลายรายการ (.ZIP)
+          </button>
+        </div>
+
+        <!-- Tool 3 Visual Card: Local History -->
+        <div class="bg-surface rounded-2xl border border-borderWarm p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div class="rounded-xl bg-paper border border-borderWarm p-3 mb-4 flex items-center justify-center h-32">
+              <svg class="w-full max-w-[220px] h-auto" viewBox="0 0 220 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="16" y="16" width="188" height="30" rx="6" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+                <rect x="24" y="23" width="16" height="16" rx="3" fill="#141413"/>
+                <rect x="48" y="25" width="84" height="5" rx="2.5" fill="#141413"/>
+                <rect x="48" y="34" width="50" height="4" rx="2" fill="#787672"/>
+                <rect x="156" y="23" width="38" height="16" rx="4" fill="#ECFDF5"/>
+                <text x="175" y="34" text-anchor="middle" fill="#0F5338" font-family="sans-serif" font-size="7.5" font-weight="bold">LOAD</text>
+                <rect x="16" y="52" width="188" height="30" rx="6" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="1.5"/>
+                <rect x="24" y="59" width="16" height="16" rx="3" fill="#0F5338"/>
+                <rect x="48" y="61" width="94" height="5" rx="2.5" fill="#141413"/>
+                <rect x="48" y="70" width="60" height="4" rx="2" fill="#787672"/>
+                <rect x="156" y="59" width="38" height="16" rx="4" fill="#FAF9F5" stroke="#E6E4DD"/>
+                <text x="175" y="70" text-anchor="middle" fill="#4A4946" font-family="monospace" font-size="7" font-weight="bold">.JSON</text>
+              </svg>
+            </div>
+            <h4 class="font-bold text-xs sm:text-sm text-ink flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-forest"></span>
+              <span data-i18n="guide.tool3Title">ปุ่ม "ประวัติของฉัน"</span>
+            </h4>
+            <p class="text-xs text-charcoal mt-1.5 leading-relaxed" data-i18n="guide.tool3Desc">
+              ดูรายการ QR Code ที่คุณเคยสร้างไว้ทั้งหมดและกดเรียกคืนค่าเดิมได้ทันที ข้อมูลถูกเก็บไว้ในเบราว์เซอร์ของคุณเอง (ไม่ส่งขึ้นเซิร์ฟเวอร์) พร้อมสำรองไฟล์เป็น <strong>.JSON</strong> ได้
+            </p>
+          </div>
+          <button onclick="openModal('historyModal')" class="mt-4 w-full py-2 rounded-lg bg-subtle hover:bg-borderWarm text-xs font-semibold text-ink transition-colors" data-i18n="guide.tool3Btn">
+            เปิดดูประวัติของฉัน
+          </button>
+        </div>
+
+      </div>
+
+      <!-- PART 3: Why Minimal Data Area Matters (Visual Comparison Banner) -->
+      <div class="mt-6 bg-surface rounded-2xl border border-borderWarm p-4 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 max-w-xl">
+          <span class="text-[11px] font-mono uppercase tracking-wider text-forest font-semibold" data-i18n="compare.eyebrow">Engineering Difference</span>
+          <h3 class="text-sm sm:text-base font-bold text-ink" data-i18n="compare.title">ทำไม QR Code ของเว็บนี้ถึงสแกนติดไวกว่าและไม่มีวันหมดอายุ?</h3>
+          <p class="text-xs text-charcoal leading-relaxed" data-i18n="compare.desc">
+            เว็บทั่วไปมักบังคับย่อลิงก์ผ่านตัวกลาง (ทำให้ลิงก์หมดอายุเมื่อเว็บนั้นปิดตัว) หรือตั้งค่าจุดแน่นเกินความจำเป็น แต่ <strong>Gen QR TH</strong> เข้ารหัสลิงก์จริงของคุณโดยตรงด้วยอัลกอริทึม <strong>Minimal Matrix (Version ต่ำสุด + Level L)</strong> ทำให้ได้จุดขนาดใหญ่ คมชัด และใช้งานได้ตลอดชีพ
+          </p>
+        </div>
+
+        <!-- Visual Comparison SVG: Dense QR vs Minimal Matrix QR -->
+        <div class="flex items-center gap-3 sm:gap-4 shrink-0 bg-paper px-4 py-3 rounded-xl border border-borderWarm">
+          <div class="text-center">
+            <svg class="w-16 h-16 mx-auto" viewBox="0 0 64 64" fill="none">
+              <rect width="64" height="64" rx="6" fill="#FFFFFF" stroke="#E6E4DD"/>
+              <g fill="#787672" opacity="0.65">
+                <rect x="8" y="8" width="12" height="12" stroke="#787672" stroke-width="2" fill="none"/>
+                <rect x="44" y="8" width="12" height="12" stroke="#787672" stroke-width="2" fill="none"/>
+                <rect x="8" y="44" width="12" height="12" stroke="#787672" stroke-width="2" fill="none"/>
+                <rect x="24" y="8" width="3" height="3"/><rect x="30" y="8" width="3" height="3"/><rect x="36" y="8" width="3" height="3"/>
+                <rect x="24" y="14" width="3" height="3"/><rect x="33" y="14" width="3" height="3"/><rect x="39" y="14" width="3" height="3"/>
+                <rect x="8" y="24" width="3" height="3"/><rect x="14" y="24" width="3" height="3"/><rect x="20" y="24" width="3" height="3"/><rect x="26" y="24" width="3" height="3"/><rect x="32" y="24" width="3" height="3"/><rect x="38" y="24" width="3" height="3"/><rect x="44" y="24" width="3" height="3"/><rect x="50" y="24" width="3" height="3"/>
+                <rect x="11" y="30" width="3" height="3"/><rect x="17" y="30" width="3" height="3"/><rect x="23" y="30" width="3" height="3"/><rect x="29" y="30" width="3" height="3"/><rect x="35" y="30" width="3" height="3"/><rect x="41" y="30" width="3" height="3"/><rect x="47" y="30" width="3" height="3"/><rect x="53" y="30" width="3" height="3"/>
+                <rect x="8" y="36" width="3" height="3"/><rect x="14" y="36" width="3" height="3"/><rect x="20" y="36" width="3" height="3"/><rect x="26" y="36" width="3" height="3"/><rect x="32" y="36" width="3" height="3"/><rect x="38" y="36" width="3" height="3"/><rect x="44" y="36" width="3" height="3"/><rect x="50" y="36" width="3" height="3"/>
+                <rect x="24" y="44" width="3" height="3"/><rect x="30" y="44" width="3" height="3"/><rect x="36" y="44" width="3" height="3"/><rect x="42" y="44" width="3" height="3"/><rect x="48" y="44" width="3" height="3"/>
+                <rect x="27" y="50" width="3" height="3"/><rect x="33" y="50" width="3" height="3"/><rect x="39" y="50" width="3" height="3"/><rect x="45" y="50" width="3" height="3"/><rect x="51" y="50" width="3" height="3"/>
+              </g>
+            </svg>
+            <span class="block text-[10px] font-mono text-stone mt-1" data-i18n="compare.badLabel">จุดแน่นเกินไป (สแกนยาก)</span>
+          </div>
+
+          <div class="text-stone font-mono text-xs">VS</div>
+
+          <div class="text-center">
+            <svg class="w-16 h-16 mx-auto" viewBox="0 0 64 64" fill="none">
+              <rect width="64" height="64" rx="6" fill="#FFFFFF" stroke="#0F5338" stroke-width="1.5"/>
+              <rect x="8" y="8" width="14" height="14" stroke="#141413" stroke-width="2.5" fill="none"/>
+              <rect x="12" y="12" width="6" height="6" fill="#141413"/>
+              <rect x="42" y="8" width="14" height="14" stroke="#141413" stroke-width="2.5" fill="none"/>
+              <rect x="46" y="12" width="6" height="6" fill="#141413"/>
+              <rect x="8" y="42" width="14" height="14" stroke="#141413" stroke-width="2.5" fill="none"/>
+              <rect x="12" y="46" width="6" height="6" fill="#141413"/>
+              <rect x="28" y="10" width="6" height="6" fill="#0F5338"/>
+              <rect x="28" y="26" width="8" height="8" rx="1" fill="#0F5338"/>
+              <rect x="10" y="28" width="6" height="6" fill="#141413"/>
+              <rect x="44" y="28" width="6" height="6" fill="#141413"/>
+              <rect x="28" y="44" width="6" height="6" fill="#141413"/>
+              <rect x="42" y="42" width="10" height="10" rx="1.5" fill="#0F5338"/>
+            </svg>
+            <span class="block text-[10px] font-mono text-forest font-bold mt-1" data-i18n="compare.goodLabel">Gen QR TH (จุดคมชัด)</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: BATCH GENERATOR (.ZIP) - Mobile Bottom Sheet Friendly        -->
+  <!-- ===================================================================== -->
+  <div id="batchModal" class="fixed inset-0 z-50 hidden bg-ink/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-surface w-full max-w-2xl rounded-t-2xl sm:rounded-2xl border border-borderWarm shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-borderWarm flex items-center justify-between bg-paper">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-950/10 text-forest flex items-center justify-center font-mono font-bold text-xs">ZIP</div>
+          <div>
+            <h3 class="font-bold text-sm text-ink" data-i18n="batch.title">สร้างหลาย QR พร้อมกัน (Batch Mode)</h3>
+            <p class="text-[11px] text-stone" data-i18n="batch.subtitle">วางลิงก์บรรทัดละ 1 รายการ เพื่อดาวน์โหลดเป็นไฟล์ .ZIP ในคลิกเดียว</p>
+          </div>
+        </div>
+        <button onclick="closeModal('batchModal')" class="w-8 h-8 rounded-lg bg-subtle hover:bg-borderWarm text-charcoal flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4 overflow-y-auto">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-medium text-charcoal" data-i18n="batch.inputLabel">รายการลิงก์ หรือข้อความ (สูงสุด 200 รายการต่อครั้ง)</span>
+          <span id="batchLineCounter" class="font-mono text-forest font-semibold">3 items</span>
+        </div>
+
+        <textarea 
+          id="batchInput" 
+          rows="6" 
+          placeholder="https://example.com/item-1&#10;https://example.com/item-2"
+          class="w-full rounded-xl bg-paper border border-borderWarm p-3.5 text-sm font-mono text-ink focus:outline-none focus:border-forest resize-y"
+          oninput="updateBatchCounter()"
+        >https://www.lazada.co.th
+https://example.com/product-01
+https://example.com/product-02</textarea>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] text-stone mb-1" data-i18n="batch.prefixLabel">คำนำหน้าชื่อไฟล์ใน .ZIP</label>
+            <input type="text" id="batchPrefix" value="genqr-th" class="w-full rounded-lg bg-paper border border-borderWarm px-3 py-2 text-xs font-mono focus:outline-none focus:border-forest" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-stone mb-1" data-i18n="batch.formatLabel">นามสกุลไฟล์</label>
+            <select id="batchFormat" class="w-full rounded-lg bg-paper border border-borderWarm px-3 py-2 text-xs font-mono focus:outline-none focus:border-forest">
+              <option value="png">PNG (1000×1000 px)</option>
+              <option value="svg">SVG (Vector)</option>
+            </select>
+          </div>
+        </div>
+
+        <p id="batchStatusText" class="text-xs font-mono text-stone text-center hidden"></p>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 border-t border-borderWarm bg-paper flex items-center justify-end gap-2.5">
+        <button onclick="closeModal('batchModal')" class="px-4 py-2 rounded-xl text-xs font-semibold text-charcoal hover:bg-subtle" data-i18n="modal.closeBtn">ปิดหน้าต่าง</button>
+        <button id="batchGenerateBtn" onclick="generateBatchZip()" class="px-5 py-2.5 rounded-xl bg-forest hover:bg-forestHover text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-all">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span data-i18n="batch.downloadBtn">ดาวน์โหลดทั้งหมดเป็น .ZIP</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: LOCAL HISTORY VAULT - Mobile Bottom Sheet Friendly           -->
+  <!-- ===================================================================== -->
+  <div id="historyModal" class="fixed inset-0 z-50 hidden bg-ink/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-surface w-full max-w-2xl rounded-t-2xl sm:rounded-2xl border border-borderWarm shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-borderWarm flex items-center justify-between bg-paper">
+        <div>
+          <h3 class="font-bold text-sm text-ink" data-i18n="hist.title">ประวัติการสร้าง QR ของฉัน (บันทึกเฉพาะในเครื่องนี้)</h3>
+          <p class="text-[11px] text-stone" data-i18n="hist.subtitle">ข้อมูลถูกเก็บใน LocalStorage บนเบราว์เซอร์ของคุณ ไม่มีการส่งออกนอกเครื่อง</p>
+        </div>
+        <button onclick="closeModal('historyModal')" class="w-8 h-8 rounded-lg bg-subtle hover:bg-borderWarm text-charcoal flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="px-5 py-2.5 bg-subtle/60 border-b border-borderWarm flex items-center justify-between">
+        <button onclick="saveCurrentToHistory()" class="text-xs font-semibold text-forest hover:underline flex items-center gap-1">
+          <span data-i18n="hist.saveCurrent">+ บันทึก QR ปัจจุบันลงประวัติ</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="exportHistoryJSON()" class="px-2.5 py-1 rounded bg-surface border border-borderWarm text-[11px] font-medium text-charcoal hover:text-ink" data-i18n="hist.exportJson">
+            ส่งออก .JSON
+          </button>
+          <button onclick="clearAllHistory()" class="px-2.5 py-1 rounded bg-surface border border-borderWarm text-[11px] font-medium text-red-700 hover:bg-red-50" data-i18n="hist.clearAll">
+            ล้างทั้งหมด
+          </button>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <div id="historyContainer" class="p-5 overflow-y-auto space-y-2.5 flex-1"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- FOOTER: TRANSPARENT SPONSOR (TRUEMONEY + LAZADA) & THAI PDPA          -->
+  <!-- ===================================================================== -->
+  <footer class="mt-12 border-t border-borderWarm bg-surface">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-xs text-stone">
+      <div class="space-y-1">
+        <p class="font-semibold text-ink" data-i18n="footer.title">Gen QR TH — ระบบสร้าง QR Code มาตรฐานวิศวกรรม (Client-Side 100%)</p>
+        <p data-i18n="footer.pdpa">ปฏิบัติตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) และ พ.ร.บ. คอมพิวเตอร์ฯ ของประเทศไทย ไม่มีการดักเก็บข้อมูลผู้ใช้</p>
+      </div>
+
+      <!-- Dual Support Buttons in Footer -->
+      <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+        <!-- TrueMoney Support Button -->
+        <a href="https://tmn.app.link/v8tUbBfxn7b" 
+           target="_blank" 
+           rel="noopener noreferrer sponsored"
+           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-orange-50/90 hover:bg-orange-100 text-orange-950 border border-orange-200 hover:border-orange-300 transition-colors font-medium">
+          <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-900 font-semibold">TrueMoney</span>
+          <span data-i18n="footer.tmnBtn">ร่วมสนับสนุนผ่าน TrueMoney</span>
+          <svg class="w-3.5 h-3.5 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- Lazada Partner Support Button -->
+        <a href="https://www.lazada.co.th/?t=p-iHeHvwX" 
+           target="_blank" 
+           rel="noopener noreferrer sponsored"
+           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-paper hover:bg-amber-50 text-charcoal hover:text-amber-900 border border-borderWarm hover:border-amber-300 transition-colors font-medium">
+          <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-800 font-semibold">Partner</span>
+          <span data-i18n="footer.sponsorBtn">ช้อปผ่าน Lazada เพื่อสนับสนุนเว็บ</span>
+          <svg class="w-3.5 h-3.5 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-2.5 rounded-xl bg-ink text-paper text-xs font-medium shadow-lg flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toastMessage">สำเร็จ</span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC & BILINGUAL (TH/EN) AUTO-DETECTION ENGINE           -->
+  <!-- ===================================================================== -->
+  <script>
+    'use strict';
+
+    // --- 1. Bilingual Dictionary (TH / EN) ---
+    const I18N = {
+      th: {
+        metaTitle: 'Gen QR TH — ระบบแปลงลิงก์เป็น QR Code มาตรฐานวิศวกรรม | ปลอดภัย ไม่มีโฆษณา',
+        'nav.badge': 'No Ads • Local',
+        'nav.subtitle': 'แปลงลิงก์เป็น QR Code ทันที • ไม่ย่อลิงก์ • ปลอดภัย 100%',
+        'nav.tmnFull': 'สนับสนุน (TrueMoney)',
+        'nav.tmnShort': 'TrueMoney',
+        'nav.sponsorFull': 'สนับสนุน (Lazada)',
+        'nav.sponsorShort': 'Lazada',
+        'hero.title': 'วางลิงก์ รับ QR Code ทันที',
+        'hero.desc': 'สร้าง QR ที่ใช้จุดน้อยที่สุด สแกนติดไว ลิงก์ตรงไม่ผ่านเว็บย่อลิงก์ ไม่มีวันหมดอายุ',
+        'hero.guideLink': 'ดูคู่มือวิธีใช้งานพร้อมภาพประกอบด้านล่าง',
+        'step1.label': 'วางลิงก์เว็บไซต์ หรือข้อความที่นี่',
+        'step1.pasteBtn': 'วาง (Paste)',
+        'step1.clearBtn': 'ล้าง',
+        'status.prefix': 'โหมดประหยัดพื้นที่จุด:',
+        'status.autoH': 'Level H (30% • โหมดโลโก้)',
+        'status.minL': 'Level L (7% • จุดน้อยที่สุด)',
+        'tools.header': 'เครื่องมือเพิ่มเติม (กดเลือกเมื่อต้องการใช้งาน)',
+        'tools.swipeHint': 'เลื่อนซ้าย-ขวา →',
+        'tools.customizeBtn': 'ปรับแต่งสี / ใส่โลโก้',
+        'tools.batchBtn': 'สร้างหลาย QR พร้อมกัน (.ZIP)',
+        'tools.historyBtn': 'ประวัติของฉัน',
+        'tools.guideBtn': 'วิธีใช้',
+        'step2.label': 'สแกน หรือ กดดาวน์โหลด',
+        'step2.scanReady': 'สแกนติดง่าย',
+        'step2.contrastLow': 'สีกลืนกัน',
+        'step2.contrastWarn': 'สี QR กับพื้นหลังใกล้เคียงกันเกินไป อาจสแกนติดยาก',
+        'btn.downloadPng': 'ดาวน์โหลด PNG',
+        'btn.downloadSvg': 'ดาวน์โหลด SVG',
+        'btn.copyImg': 'คัดลอกรูป',
+        'btn.shareImg': 'แชร์ QR',
+        'btn.saveHist': 'บันทึกประวัติ',
+        'drawer.title': 'ตั้งค่ารูปแบบ QR Code (สี / รูปทรง / โลโก้ตรงกลาง)',
+        'drawer.resetBtn': 'รีเซ็ตค่าเริ่มต้น',
+        'drawer.hideBtn': 'ซ่อนหน้าต่างนี้ ✕',
+        'drawer.col1Title': '1. สีจุด QR และสีพื้นหลัง',
+        'drawer.fgLabel': 'สีจุด (Foreground)',
+        'drawer.bgLabel': 'สีพื้นหลัง (Background)',
+        'preset.black': 'มาตรฐาน (ดำ)',
+        'preset.forest': 'เขียว Forest',
+        'preset.navy': 'น้ำเงินเข้ม',
+        'preset.earth': 'น้ำตาลเอิร์ธโทน',
+        'drawer.col2Title': '2. รูปทรงจุด และความหนาแน่น',
+        'shape.square': 'เหลี่ยมคมชัด',
+        'shape.rounded': 'เหลี่ยมมุมมน',
+        'shape.dots': 'จุดวงกลม',
+        'drawer.ecLabel': 'ระดับสำรองข้อมูล (Error Correction)',
+        'ec.optL': 'Level L (7%) — จุดน้อยที่สุด สแกนไวที่สุด (แนะนำ)',
+        'ec.optM': 'Level M (15%) — สมดุลมาตรฐาน',
+        'ec.optQ': 'Level Q (25%) — ทนรอยขีดข่วน',
+        'ec.optH': 'Level H (30%) — สำหรับใส่โลโก้ตรงกลาง',
+        'drawer.col3Title': '3. โลโก้ตรงกลาง QR',
+        'drawer.removeLogo': 'ลบโลโก้',
+        'drawer.uploadBtn': 'เลือกไฟล์รูปโลโก้ (PNG/JPG/SVG)',
+        'drawer.logoSize': 'ขนาดโลโก้',
+        'guide.eyebrow': 'Step-by-Step Visual Guide',
+        'guide.title': 'วิธีใช้งาน Gen QR TH (คู่มือภาพประกอบเข้าใจง่าย)',
+        'guide.subtitle': 'ไม่ต้องสมัครสมาชิก • ไม่มีลายน้ำ • ลิงก์ไม่มีวันหมดอายุ',
+        'guide.step1Tag': 'วางลิงก์',
+        'guide.step1Title': 'วางลิงก์ในช่องหมายเลข 1',
+        'guide.step1Desc': 'คัดลอกลิงก์เว็บไซต์ หน้าสินค้า หรือข้อความที่ต้องการ แล้วกดปุ่ม <strong>"วาง (Paste)"</strong> ระบบจะอ่านข้อมูลในเครื่องของคุณทันที',
+        'guide.step2Tag': 'แปลงอัตโนมัติ',
+        'guide.step2Title': 'ระบบสร้าง QR จุดน้อยที่สุดทันที',
+        'guide.step2Desc': 'ไม่ต้องกดปุ่มตกลง ระบบคำนวณตาราง <strong>Level L</strong> ให้จุดมีขนาดใหญ่และโปร่งที่สุดโดยไม่ย่อลิงก์ ทำให้สแกนติดง่ายแม้พิมพ์ขนาดเล็ก',
+        'guide.step3Tag': 'บันทึก / แชร์',
+        'guide.step3Title': 'กดดาวน์โหลด หรือ แชร์เข้าแอป',
+        'guide.step3Desc': 'เลือก <strong>"ดาวน์โหลด PNG"</strong> สำหรับใช้งานทั่วไป, <strong>"แชร์ QR"</strong> บนมือถือเพื่อส่งเข้า LINE/บันทึกเข้าเครื่อง หรือ <strong>"SVG"</strong> สำหรับงานพิมพ์',
+        'guide.toolsTitle': 'คู่มือการใช้ปุ่มคำสั่งเสริม (เมื่อต้องการปรับแต่งหรือสร้างจำนวนมาก)',
+        'guide.toolsSub': 'คลิกที่ปุ่มคำสั่งใต้ช่องวางลิงก์เพื่อเปิดใช้งานแต่ละโหมด',
+        'guide.tool1Title': 'ปุ่ม "ปรับแต่งสี / ใส่โลโก้"',
+        'guide.tool1Desc': 'เปลี่ยนสีจุด QR รูปทรงโมดูล (เหลี่ยม/มน/วงกลม) และอัปโหลดโลโก้แบรนด์ไว้ตรงกลาง โดยระบบจะปรับโหมดสำรองข้อมูลเป็น <strong>Level H (30%)</strong> อัตโนมัติเพื่อให้สแกนติด 100%',
+        'guide.tool1Btn': 'ทดลองเปิดแผงปรับแต่งสี ↑',
+        'guide.tool2Title': 'ปุ่ม "สร้างหลาย QR พร้อมกัน (.ZIP)"',
+        'guide.tool2Desc': 'ต้องการทำ QR Code 10–200 ลิงก์พร้อมกัน? กดปุ่มนี้แล้ววางลิงก์บรรทัดละ 1 รายการ ระบบจะสร้างและรวมเป็นไฟล์ <strong>.ZIP</strong> ให้โหลดในคลิกเดียว',
+        'guide.tool2Btn': 'เปิดโหมดสร้างหลายรายการ (.ZIP)',
+        'guide.tool3Title': 'ปุ่ม "ประวัติของฉัน"',
+        'guide.tool3Desc': 'ดูรายการ QR Code ที่คุณเคยสร้างไว้ทั้งหมดและกดเรียกคืนค่าเดิมได้ทันที ข้อมูลถูกเก็บไว้ในเบราว์เซอร์ของคุณเอง (ไม่ส่งขึ้นเซิร์ฟเวอร์) พร้อมสำรองไฟล์เป็น <strong>.JSON</strong> ได้',
+        'guide.tool3Btn': 'เปิดดูประวัติของฉัน',
+        'compare.eyebrow': 'Engineering Difference',
+        'compare.title': 'ทำไม QR Code ของเว็บนี้ถึงสแกนติดไวกว่าและไม่มีวันหมดอายุ?',
+        'compare.desc': 'เว็บทั่วไปมักบังคับย่อลิงก์ผ่านตัวกลาง (ทำให้ลิงก์หมดอายุเมื่อเว็บนั้นปิดตัว) หรือตั้งค่าจุดแน่นเกินความจำเป็น แต่ <strong>Gen QR TH</strong> เข้ารหัสลิงก์จริงของคุณโดยตรงด้วยอัลกอริทึม <strong>Minimal Matrix (Version ต่ำสุด + Level L)</strong> ทำให้ได้จุดขนาดใหญ่ คมชัด และใช้งานได้ตลอดชีพ',
+        'compare.badLabel': 'จุดแน่นเกินไป (สแกนยาก)',
+        'compare.goodLabel': 'Gen QR TH (จุดคมชัด)',
+        'batch.title': 'สร้างหลาย QR พร้อมกัน (Batch Mode)',
+        'batch.subtitle': 'วางลิงก์บรรทัดละ 1 รายการ เพื่อดาวน์โหลดเป็นไฟล์ .ZIP ในคลิกเดียว',
+        'batch.inputLabel': 'รายการลิงก์ หรือข้อความ (สูงสุด 200 รายการต่อครั้ง)',
+        'batch.prefixLabel': 'คำนำหน้าชื่อไฟล์ใน .ZIP',
+        'batch.formatLabel': 'นามสกุลไฟล์',
+        'batch.downloadBtn': 'ดาวน์โหลดทั้งหมดเป็น .ZIP',
+        'modal.closeBtn': 'ปิดหน้าต่าง',
+        'hist.title': 'ประวัติการสร้าง QR ของฉัน (บันทึกเฉพาะในเครื่องนี้)',
+        'hist.subtitle': 'ข้อมูลถูกเก็บใน LocalStorage บนเบราว์เซอร์ของคุณ ไม่มีการส่งออกนอกเครื่อง',
+        'hist.saveCurrent': '+ บันทึก QR ปัจจุบันลงประวัติ',
+        'hist.exportJson': 'ส่งออก .JSON',
+        'hist.clearAll': 'ล้างทั้งหมด',
+        'hist.empty': 'ยังไม่มีประวัติการสร้าง QR Code กดปุ่ม "บันทึกประวัติ" เพื่อเก็บรายการที่ใช้บ่อย',
+        'hist.useBtn': 'เรียกใช้',
+        'footer.title': 'Gen QR TH — ระบบสร้าง QR Code มาตรฐานวิศวกรรม (Client-Side 100%)',
+        'footer.pdpa': 'ปฏิบัติตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) และ พ.ร.บ. คอมพิวเตอร์ฯ ของประเทศไทย ไม่มีการดักเก็บข้อมูลผู้ใช้',
+        'footer.tmnBtn': 'ร่วมสนับสนุนผ่าน TrueMoney',
+        'footer.sponsorBtn': 'ช้อปผ่าน Lazada เพื่อสนับสนุนเว็บ',
+        'toast.pasted': 'วางข้อความจากคลิปบอร์ดแล้ว',
+        'toast.pasteFail': 'กรุณากด Ctrl+V หรือแตะค้างเพื่อวางลิงก์',
+        'toast.logoAdded': 'ใส่โลโก้สำเร็จ (ปรับเป็น Level H อัตโนมัติ)',
+        'toast.pngSaved': 'ดาวน์โหลดไฟล์ PNG เรียบร้อยแล้ว',
+        'toast.svgSaved': 'ดาวน์โหลดไฟล์ SVG เรียบร้อยแล้ว',
+        'toast.copied': 'คัดลอกรูป QR ลงคลิปบอร์ดแล้ว',
+        'toast.shared': 'เปิดเมนูแชร์ QR เรียบร้อยแล้ว',
+        'toast.savedHist': 'บันทึก QR ลงในประวัติเรียบร้อยแล้ว',
+        'toast.loadedHist': 'เรียกคืนค่า QR จากประวัติแล้ว',
+        'toast.zipSaved': 'ดาวน์โหลดไฟล์ .ZIP สำเร็จแล้ว'
+      },
+      en: {
+        metaTitle: 'Gen QR TH — Precision Minimal-Matrix QR Code Generator | Private & Ad-Free',
+        'nav.badge': 'No Ads • Local',
+        'nav.subtitle': 'Instant Link to QR • Direct URL (No Shorteners) • 100% Client-Side',
+        'nav.tmnFull': 'Support (TrueMoney)',
+        'nav.tmnShort': 'TrueMoney',
+        'nav.sponsorFull': 'Support (Lazada)',
+        'nav.sponsorShort': 'Lazada',
+        'hero.title': 'Paste Link, Get Instant QR Code',
+        'hero.desc': 'Engineered for minimal matrix density. Fast scanning, direct URL encoding, never expires.',
+        'hero.guideLink': 'View Visual Step-by-Step Guide below',
+        'step1.label': 'Paste Website URL or Text Here',
+        'step1.pasteBtn': 'Paste',
+        'step1.clearBtn': 'Clear',
+        'status.prefix': 'Minimal Data Area Mode:',
+        'status.autoH': 'Level H (30% • Logo Mode)',
+        'status.minL': 'Level L (7% • Minimal Matrix)',
+        'tools.header': 'Optional Power Tools (Tap to open)',
+        'tools.swipeHint': 'Swipe →',
+        'tools.customizeBtn': 'Customize Color / Logo',
+        'tools.batchBtn': 'Batch Create (.ZIP)',
+        'tools.historyBtn': 'My History',
+        'tools.guideBtn': 'How-To',
+        'step2.label': 'Scan or Download',
+        'step2.scanReady': 'Scan Ready',
+        'step2.contrastLow': 'Low Contrast',
+        'step2.contrastWarn': 'QR & background colors have low contrast. May be hard to scan.',
+        'btn.downloadPng': 'Download PNG',
+        'btn.downloadSvg': 'Download SVG',
+        'btn.copyImg': 'Copy Image',
+        'btn.shareImg': 'Share QR',
+        'btn.saveHist': 'Save History',
+        'drawer.title': 'Customize QR Appearance (Colors / Module Shape / Center Logo)',
+        'drawer.resetBtn': 'Reset Default',
+        'drawer.hideBtn': 'Hide Panel ✕',
+        'drawer.col1Title': '1. Foreground & Background Colors',
+        'drawer.fgLabel': 'QR Dots (Foreground)',
+        'drawer.bgLabel': 'Background Color',
+        'preset.black': 'Classic Black',
+        'preset.forest': 'Forest Green',
+        'preset.navy': 'Deep Navy',
+        'preset.earth': 'Warm Earth',
+        'drawer.col2Title': '2. Dot Shape & Matrix Density',
+        'shape.square': 'Crisp Square',
+        'shape.rounded': 'Rounded',
+        'shape.dots': 'Circular Dots',
+        'drawer.ecLabel': 'Error Correction Level',
+        'ec.optL': 'Level L (7%) — Minimal Dots, Fastest Scan (Recommended)',
+        'ec.optM': 'Level M (15%) — Balanced Standard',
+        'ec.optQ': 'Level Q (25%) — High Durability',
+        'ec.optH': 'Level H (30%) — Maximum (For Center Logo)',
+        'drawer.col3Title': '3. Center Brand Logo',
+        'drawer.removeLogo': 'Remove Logo',
+        'drawer.uploadBtn': 'Upload Logo Image (PNG/JPG/SVG)',
+        'drawer.logoSize': 'Logo Scale',
+        'guide.eyebrow': 'Step-by-Step Visual Guide',
+        'guide.title': 'How to Use Gen QR TH (Visual Quickstart)',
+        'guide.subtitle': 'No Sign-Up • No Watermarks • Direct Permanent Links',
+        'guide.step1Tag': 'Paste URL',
+        'guide.step1Title': 'Paste your link in Box #1',
+        'guide.step1Desc': 'Copy any website URL, product link, or text and tap <strong>"Paste"</strong>. Everything is processed locally on your device.',
+        'guide.step2Tag': 'Auto-Optimize',
+        'guide.step2Title': 'Instant Minimal-Matrix Encoding',
+        'guide.step2Desc': 'Our engine automatically selects the smallest QR version at <strong>Level L</strong> without link shorteners—giving you larger, cleaner dots.',
+        'guide.step3Tag': 'Save / Share',
+        'guide.step3Title': 'Download or Share Directly',
+        'guide.step3Desc': 'Tap <strong>"Download PNG"</strong> for everyday use, <strong>"Share QR"</strong> on mobile to send via chat/save to Photos, or <strong>"SVG"</strong> for print design.',
+        'guide.toolsTitle': 'Power Tools Guide (Custom Branding & Bulk Generation)',
+        'guide.toolsSub': 'Tap any tool button below the input box to unlock advanced features',
+        'guide.tool1Title': '"Customize Color / Logo" Button',
+        'guide.tool1Desc': 'Pick custom brand colors, switch module shapes (Square/Rounded/Dots), and embed a center logo. Auto-switches to <strong>Level H (30%)</strong> for 100% scan reliability.',
+        'guide.tool1Btn': 'Open Color & Logo Customizer ↑',
+        'guide.tool2Title': '"Batch Create (.ZIP)" Button',
+        'guide.tool2Desc': 'Need 10 to 200 QR codes at once? Paste one link per line and download all generated QR codes bundled inside a single <strong>.ZIP</strong> archive.',
+        'guide.tool2Btn': 'Open Batch (.ZIP) Generator',
+        'guide.tool3Title': '"My History" Button',
+        'guide.tool3Desc': 'Recall previously saved QR codes and styles anytime. Stored 100% privately in your browser’s LocalStorage with one-click <strong>.JSON</strong> backup.',
+        'guide.tool3Btn': 'Open My History Vault',
+        'compare.eyebrow': 'Engineering Difference',
+        'compare.title': 'Why do QR Codes from Gen QR TH scan faster and never expire?',
+        'compare.desc': 'Many generators secretly replace your URL with a tracking redirect (which breaks if their service shuts down) or over-pack tiny dots. <strong>Gen QR TH</strong> encodes your exact link using <strong>Minimal Matrix Optimization (Smallest Version + Level L)</strong> for crisp, permanent QR codes.',
+        'compare.badLabel': 'Over-Dense (Hard to Scan)',
+        'compare.goodLabel': 'Gen QR TH (Crisp & Fast)',
+        'batch.title': 'Batch QR Code Generator (.ZIP)',
+        'batch.subtitle': 'Paste 1 link per line to generate and bundle all QR codes into a single .ZIP file',
+        'batch.inputLabel': 'URLs or Text List (Up to 200 items per batch)',
+        'batch.prefixLabel': 'Filename Prefix inside .ZIP',
+        'batch.formatLabel': 'Image Format',
+        'batch.downloadBtn': 'Download All as .ZIP',
+        'modal.closeBtn': 'Close',
+        'hist.title': 'My Saved QR History (100% Local on this Device)',
+        'hist.subtitle': 'Stored privately in your browser LocalStorage. Nothing is uploaded to any server.',
+        'hist.saveCurrent': '+ Save Current QR to History',
+        'hist.exportJson': 'Export .JSON',
+        'hist.clearAll': 'Clear All',
+        'hist.empty': 'No saved QR codes yet. Tap "Save History" to bookmark frequently used links.',
+        'hist.useBtn': 'Load',
+        'footer.title': 'Gen QR TH — Precision Client-Side QR Code Architecture',
+        'footer.pdpa': 'Compliant with Thailand PDPA & Computer Crime Act. Zero tracking, zero server uploads.',
+        'footer.tmnBtn': 'Support via TrueMoney',
+        'footer.sponsorBtn': 'Shop on Lazada to Support Us',
+        'toast.pasted': 'Pasted from clipboard',
+        'toast.pasteFail': 'Please press Ctrl+V or long-press to paste',
+        'toast.logoAdded': 'Logo added (Auto-switched to Level H)',
+        'toast.pngSaved': 'PNG downloaded',
+        'toast.svgSaved': 'SVG vector downloaded',
+        'toast.copied': 'QR image copied to clipboard',
+        'toast.shared': 'Share sheet opened',
+        'toast.savedHist': 'Saved to your local history',
+        'toast.loadedHist': 'Loaded QR from history',
+        'toast.zipSaved': 'Batch .ZIP downloaded'
+      }
+    };
+
+    const STORAGE_KEY = 'GEN_QR_TH_HISTORY_V2';
+    const LANG_STORAGE_KEY = 'GEN_QR_TH_LANG_PREF';
+
+    const state = {
+      lang: 'th',
+      payload: 'https://www.lazada.co.th',
+      ecLevel: 'L',
+      fgColor: '#141413',
+      bgColor: '#FFFFFF',
+      shape: 'square',
+      logoDataUrl: null,
+      logoImage: null,
+      logoScale: 0.20,
+      version: 1,
+      moduleCount: 21
+    };
+
+    // --- 2. Device Language Auto-Detection & Switching ---
+    function detectInitialLanguage() {
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('lang');
+      if (urlLang === 'en' || urlLang === 'th') {
+        return urlLang;
+      }
+
+      try {
+        const savedLang = localStorage.getItem(LANG_STORAGE_KEY);
+        if (savedLang === 'en' || savedLang === 'th') {
+          return savedLang;
+        }
+      } catch (e) {}
+
+      const browserLangs = navigator.languages && navigator.languages.length
+        ? navigator.languages
+        : [navigator.language || navigator.userLanguage || 'th'];
+
+      const primaryLang = (browserLangs[0] || '').toLowerCase();
+      if (primaryLang.startsWith('th')) {
+        return 'th';
+      }
+      return 'en';
+    }
+
+    function t(key) {
+      const dict = I18N[state.lang] || I18N.th;
+      return dict[key] || I18N.th[key] || key;
+    }
+
+    function setLanguage(lang, savePreference = true) {
+      state.lang = (lang === 'en') ? 'en' : 'th';
+      document.documentElement.lang = state.lang;
+      document.title = t('metaTitle');
+
+      if (savePreference) {
+        try {
+          localStorage.setItem(LANG_STORAGE_KEY, state.lang);
+        } catch (e) {}
+      }
+
+      const btnTH = document.getElementById('langBtnTH');
+      const btnEN = document.getElementById('langBtnEN');
+      if (state.lang === 'th') {
+        btnTH.className = 'px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition-all bg-surface text-ink shadow-sm';
+        btnEN.className = 'px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition-all text-stone hover:text-ink';
+      } else {
+        btnEN.className = 'px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition-all bg-surface text-ink shadow-sm';
+        btnTH.className = 'px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition-all text-stone hover:text-ink';
+      }
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translated = t(key);
+        if (translated.includes('<strong>')) {
+          el.innerHTML = translated;
+        } else {
+          el.textContent = translated;
+        }
+      });
+
+      document.getElementById('ecOptL').textContent = t('ec.optL');
+      document.getElementById('ecOptM').textContent = t('ec.optM');
+      document.getElementById('ecOptQ').textContent = t('ec.optQ');
+      document.getElementById('ecOptH').textContent = t('ec.optH');
+
+      renderQR();
+      renderHistory();
+      updateBatchCounter();
+    }
+
+    // --- 3. Initialize App ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const qrInput = document.getElementById('qrInput');
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('data')) {
+        state.payload = params.get('data');
+        qrInput.value = state.payload;
+      }
+
+      const initialLang = detectInitialLanguage();
+      setLanguage(initialLang, false);
+
+      qrInput.addEventListener('input', (e) => {
+        state.payload = e.target.value;
+        renderQR();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal('batchModal');
+          closeModal('historyModal');
+        }
+      });
+    });
+
+    // --- 4. Minimal Matrix QR Calculation ---
+    function createMinimalQRMatrix(text, ecLevel) {
+      const cleanText = (text || '').trim() || 'https://www.lazada.co.th';
+      const utf8Text = unescape(encodeURIComponent(cleanText));
+      const qr = qrcode(0, ecLevel);
+      qr.addData(utf8Text);
+      qr.make();
+      return qr;
+    }
+
+    function isFinderPattern(row, col, count) {
+      if (row <= 7 && col <= 7) return true;
+      if (row <= 7 && col >= count - 8) return true;
+      if (row >= count - 8 && col <= 7) return true;
+      return false;
+    }
+
+    function isCenterLogoZone(row, col, count) {
+      if (!state.logoImage) return false;
+      const center = count / 2;
+      const halfSpan = (count * state.logoScale) / 2 + 1.1;
+      return (
+        row >= Math.floor(center - halfSpan) &&
+        row <= Math.ceil(center + halfSpan) &&
+        col >= Math.floor(center - halfSpan) &&
+        col <= Math.ceil(center + halfSpan)
+      );
+    }
+
+    function renderQR() {
+      const rawText = state.payload.trim() || ' ';
+      const byteLength = new TextEncoder().encode(rawText).length;
+      document.getElementById('charByteCounter').textContent = `${byteLength} bytes`;
+
+      const effectiveEC = state.logoImage ? 'H' : state.ecLevel;
+      const ecLabel = document.getElementById('ecStatusLabel');
+      ecLabel.textContent = state.logoImage ? t('status.autoH') : (effectiveEC === 'L' ? t('status.minL') : `Level ${effectiveEC}`);
+
+      try {
+        const qr = createMinimalQRMatrix(rawText, effectiveEC);
+        const count = qr.getModuleCount();
+        const version = Math.round((count - 17) / 4);
+        state.version = version;
+        state.moduleCount = count;
+
+        document.getElementById('matrixVersionBadge').textContent = `Version ${version} (${count}×${count})`;
+
+        drawCanvasQR(qr, count);
+        checkContrast();
+      } catch (err) {
+        document.getElementById('matrixVersionBadge').textContent = 'Data too long';
+      }
+    }
+
+    function drawCanvasQR(qr, count) {
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      const size = 1000;
+      const quietZone = 4;
+      const totalModules = count + quietZone * 2;
+      const cellSize = size / totalModules;
+
+      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = state.bgColor;
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = state.fgColor;
+
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          if (!qr.isDark(r, c)) continue;
+          if (isCenterLogoZone(r, c, count)) continue;
+
+          const x = (c + quietZone) * cellSize;
+          const y = (r + quietZone) * cellSize;
+          const isFinder = isFinderPattern(r, c, count);
+
+          if (state.shape === 'square' || isFinder) {
+            ctx.fillRect(x, y, cellSize + 0.35, cellSize + 0.35);
+          } else if (state.shape === 'rounded') {
+            drawRoundedRect(ctx, x, y, cellSize, cellSize, cellSize * 0.32);
+          } else if (state.shape === 'dots') {
+            ctx.beginPath();
+            ctx.arc(x + cellSize / 2, y + cellSize / 2, (cellSize / 2) * 0.88, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      if (state.logoImage) {
+        const logoBoxSize = size * state.logoScale;
+        const logoX = (size - logoBoxSize) / 2;
+        const logoY = (size - logoBoxSize) / 2;
+        const pad = cellSize * 0.8;
+
+        ctx.fillStyle = state.bgColor;
+        drawRoundedRect(ctx, logoX - pad, logoY - pad, logoBoxSize + pad * 2, logoBoxSize + pad * 2, 20);
+        ctx.drawImage(state.logoImage, logoX, logoY, logoBoxSize, logoBoxSize);
+      }
+    }
+
+    function drawRoundedRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function buildSVGString(qr, count) {
+      const size = 1000;
+      const quietZone = 4;
+      const totalModules = count + quietZone * 2;
+      const cellSize = size / totalModules;
+
+      let elements = [];
+      elements.push(`<rect width="100%" height="100%" fill="${state.bgColor}"/>`);
+
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          if (!qr.isDark(r, c)) continue;
+          if (isCenterLogoZone(r, c, count)) continue;
+
+          const x = ((c + quietZone) * cellSize).toFixed(2);
+          const y = ((r + quietZone) * cellSize).toFixed(2);
+          const s = (cellSize + 0.25).toFixed(2);
+          const isFinder = isFinderPattern(r, c, count);
+
+          if (state.shape === 'square' || isFinder) {
+            elements.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${state.fgColor}"/>`);
+          } else if (state.shape === 'rounded') {
+            const rad = (cellSize * 0.32).toFixed(2);
+            elements.push(`<rect x="${x}" y="${y}" width="${cellSize.toFixed(2)}" height="${cellSize.toFixed(2)}" rx="${rad}" fill="${state.fgColor}"/>`);
+          } else if (state.shape === 'dots') {
+            const cx = (parseFloat(x) + cellSize / 2).toFixed(2);
+            const cy = (parseFloat(y) + cellSize / 2).toFixed(2);
+            const rad = ((cellSize / 2) * 0.88).toFixed(2);
+            elements.push(`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="${state.fgColor}"/>`);
+          }
+        }
+      }
+
+      if (state.logoDataUrl) {
+        const logoBoxSize = size * state.logoScale;
+        const logoX = (size - logoBoxSize) / 2;
+        const logoY = (size - logoBoxSize) / 2;
+        const pad = cellSize * 0.8;
+        elements.push(`<rect x="${(logoX - pad).toFixed(2)}" y="${(logoY - pad).toFixed(2)}" width="${(logoBoxSize + pad * 2).toFixed(2)}" height="${(logoBoxSize + pad * 2).toFixed(2)}" rx="20" fill="${state.bgColor}"/>`);
+        elements.push(`<image href="${state.logoDataUrl}" x="${logoX.toFixed(2)}" y="${logoY.toFixed(2)}" width="${logoBoxSize.toFixed(2)}" height="${logoBoxSize.toFixed(2)}" preserveAspectRatio="xMidYMid meet"/>`);
+      }
+
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="1000" height="1000">${elements.join('')}</svg>`;
+    }
+
+    // --- 5. UI Controls, Drawers & Modals ---
+    function toggleCustomizeDrawer() {
+      const drawer = document.getElementById('customizeDrawer');
+      const chevron = document.getElementById('customizeChevron');
+      const btn = document.getElementById('btnToggleCustomize');
+      const isHidden = drawer.classList.contains('hidden');
+
+      if (isHidden) {
+        drawer.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+        btn.classList.add('border-forest', 'bg-emerald-950/5');
+      } else {
+        drawer.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+        btn.classList.remove('border-forest', 'bg-emerald-950/5');
+      }
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      if (id === 'batchModal') updateBatchCounter();
+      if (id === 'historyModal') renderHistory();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function resetToSimpleView() {
+      document.getElementById('customizeDrawer').classList.add('hidden');
+      closeModal('batchModal');
+      closeModal('historyModal');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- 6. Color, Shape & Logo Handlers ---
+    function syncColor(type, hex) {
+      if (type === 'fg') {
+        state.fgColor = hex.toUpperCase();
+        document.getElementById('fgColorHex').value = state.fgColor;
+      } else {
+        state.bgColor = hex.toUpperCase();
+        document.getElementById('bgColorHex').value = state.bgColor;
+      }
+      renderQR();
+    }
+
+    function syncColorHex(type, val) {
+      if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+        if (type === 'fg') {
+          state.fgColor = val.toUpperCase();
+          document.getElementById('fgColorPicker').value = state.fgColor;
+        } else {
+          state.bgColor = val.toUpperCase();
+          document.getElementById('bgColorPicker').value = state.bgColor;
+        }
+        renderQR();
+      }
+    }
+
+    function applyColorPreset(fg, bg) {
+      syncColor('fg', fg);
+      syncColor('bg', bg);
+      document.getElementById('fgColorPicker').value = fg;
+      document.getElementById('bgColorPicker').value = bg;
+    }
+
+    function setModuleShape(shape) {
+      state.shape = shape;
+      ['square', 'rounded', 'dots'].forEach(s => {
+        const btn = document.getElementById(`shapeBtn-${s}`);
+        if (s === shape) {
+          btn.className = 'shape-btn py-2 px-2 rounded-lg text-xs font-medium border border-forest bg-emerald-950/5 text-forest';
+        } else {
+          btn.className = 'shape-btn py-2 px-2 rounded-lg text-xs font-medium border border-borderWarm bg-paper text-charcoal';
+        }
+      });
+      renderQR();
+    }
+
+    function setECLevel(level) {
+      state.ecLevel = level;
+      renderQR();
+    }
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          state.logoDataUrl = e.target.result;
+          state.logoImage = img;
+          document.getElementById('logoFileName').textContent = file.name;
+          document.getElementById('removeLogoBtn').classList.remove('hidden');
+          document.getElementById('logoScaleWrapper').classList.remove('opacity-40', 'pointer-events-none');
+          document.getElementById('ecLevelSelect').value = 'H';
+          renderQR();
+          showToast(t('toast.logoAdded'));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateLogoScale(val) {
+      state.logoScale = parseInt(val, 10) / 100;
+      document.getElementById('logoScaleLabel').textContent = `${val}%`;
+      renderQR();
+    }
+
+    function removeLogo() {
+      state.logoDataUrl = null;
+      state.logoImage = null;
+      document.getElementById('logoFileInput').value = '';
+      document.getElementById('logoFileName').textContent = t('drawer.uploadBtn');
+      document.getElementById('removeLogoBtn').classList.add('hidden');
+      document.getElementById('logoScaleWrapper').classList.add('opacity-40', 'pointer-events-none');
+      document.getElementById('ecLevelSelect').value = state.ecLevel;
+      renderQR();
+    }
+
+    function resetStyles() {
+      applyColorPreset('#141413', '#FFFFFF');
+      setModuleShape('square');
+      state.ecLevel = 'L';
+      document.getElementById('ecLevelSelect').value = 'L';
+      removeLogo();
+      renderQR();
+    }
+
+    // --- 7. Contrast Verification ---
+    function getLuminance(hex) {
+      const rgb = hex.replace('#', '').match(/.{2}/g).map(x => {
+        const v = parseInt(x, 16) / 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+    }
+
+    function checkContrast() {
+      const l1 = getLuminance(state.fgColor);
+      const l2 = getLuminance(state.bgColor);
+      const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      const inverted = l1 > l2;
+
+      const warnBanner = document.getElementById('contrastWarningBanner');
+      const badge = document.getElementById('contrastStatusBadge');
+
+      if (ratio < 3.5 || inverted) {
+        warnBanner.classList.remove('hidden');
+        badge.innerHTML = `⚠ <span>${t('step2.contrastLow')}</span>`;
+        badge.className = 'inline-flex items-center gap-1 text-[11px] font-mono text-amber-900 bg-amber-500/20 px-2 py-0.5 rounded-md';
+      } else {
+        warnBanner.classList.add('hidden');
+        badge.innerHTML = `✓ <span>${t('step2.scanReady')}</span>`;
+        badge.className = 'inline-flex items-center gap-1 text-[11px] font-mono text-emerald-800 bg-emerald-950/10 px-2 py-0.5 rounded-md';
+      }
+    }
+
+    // --- 8. Download, Copy & Mobile Native Share ---
+    function downloadQR(format) {
+      const canvas = document.getElementById('qrCanvas');
+      const filename = `genqr-th-${Date.now().toString().slice(-6)}`;
+
+      if (format === 'png') {
+        const link = document.createElement('a');
+        link.download = `${filename}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast(t('toast.pngSaved'));
+      } else {
+        const effectiveEC = state.logoImage ? 'H' : state.ecLevel;
+        const qr = createMinimalQRMatrix(state.payload, effectiveEC);
+        const svgStr = buildSVGString(qr, qr.getModuleCount());
+        const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `${filename}.svg`;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast(t('toast.svgSaved'));
+      }
+    }
+
+    async function copyQRImageToClipboard() {
+      const canvas = document.getElementById('qrCanvas');
+      try {
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast(t('toast.copied'));
+      } catch (e) {
+        downloadQR('png');
+      }
+    }
+
+    async function shareQRImage() {
+      const canvas = document.getElementById('qrCanvas');
+      try {
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        const file = new File([blob], 'genqr-th.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Gen QR TH',
+            text: state.payload,
+            files: [file]
+          });
+          showToast(t('toast.shared'));
+        } else {
+          await copyQRImageToClipboard();
+        }
+      } catch (err) {
+        if (err && err.name !== 'AbortError') {
+          downloadQR('png');
+        }
+      }
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          state.payload = text;
+          document.getElementById('qrInput').value = text;
+          renderQR();
+          showToast(t('toast.pasted'));
+        }
+      } catch (e) {
+        document.getElementById('qrInput').focus();
+        showToast(t('toast.pasteFail'));
+      }
+    }
+
+    function clearPayload() {
+      state.payload = '';
+      const input = document.getElementById('qrInput');
+      input.value = '';
+      input.focus();
+      renderQR();
+    }
+
+    // --- 9. Batch Mode (.ZIP) ---
+    function updateBatchCounter() {
+      const raw = document.getElementById('batchInput').value;
+      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const unit = state.lang === 'th' ? 'รายการ' : 'items';
+      document.getElementById('batchLineCounter').textContent = `${lines.length} ${unit}`;
+      return lines;
+    }
+
+    async function generateBatchZip() {
+      const lines = updateBatchCounter().slice(0, 200);
+      if (lines.length === 0) return;
+
+      const prefix = (document.getElementById('batchPrefix').value || 'genqr-th').replace(/[^a-zA-Z0-9_-]/g, '');
+      const format = document.getElementById('batchFormat').value;
+      const statusEl = document.getElementById('batchStatusText');
+      const btn = document.getElementById('batchGenerateBtn');
+
+      btn.disabled = true;
+      statusEl.classList.remove('hidden');
+
+      try {
+        const zip = new JSZip();
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = 1000;
+        offCanvas.height = 1000;
+        const offCtx = offCanvas.getContext('2d');
+        const effectiveEC = state.logoImage ? 'H' : state.ecLevel;
+
+        for (let i = 0; i < lines.length; i++) {
+          const item = lines[i];
+          const num = String(i + 1).padStart(3, '0');
+          statusEl.textContent = `Processing ${i + 1}/${lines.length}...`;
+
+          const qr = createMinimalQRMatrix(item, effectiveEC);
+          const count = qr.getModuleCount();
+
+          if (format === 'svg') {
+            zip.file(`${prefix}-${num}.svg`, buildSVGString(qr, count));
+          } else {
+            renderOffscreenQR(offCtx, qr, count);
+            const dataUrl = offCanvas.toDataURL('image/png');
+            zip.file(`${prefix}-${num}.png`, dataUrl.split(',')[1], { base64: true });
+          }
+          if (i % 10 === 0) await new Promise(r => setTimeout(r, 5));
+        }
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${prefix}-batch-${lines.length}.zip`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+        statusEl.textContent = `✓ (${lines.length})`;
+        showToast(t('toast.zipSaved'));
+      } catch (e) {
+        statusEl.textContent = 'Error';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function renderOffscreenQR(ctx, qr, count) {
+      const size = 1000;
+      const quietZone = 4;
+      const cellSize = size / (count + quietZone * 2);
+      ctx.fillStyle = state.bgColor;
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = state.fgColor;
+
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          if (!qr.isDark(r, c) || isCenterLogoZone(r, c, count)) continue;
+          const x = (c + quietZone) * cellSize;
+          const y = (r + quietZone) * cellSize;
+          ctx.fillRect(x, y, cellSize + 0.35, cellSize + 0.35);
+        }
+      }
+    }
+
+    // --- 10. Local History Vault ---
+    function getHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveCurrentToHistory() {
+      const payload = state.payload.trim();
+      if (!payload) return;
+
+      const list = getHistory().filter(item => item.payload !== payload);
+      list.unshift({
+        id: Date.now().toString(36),
+        payload,
+        fgColor: state.fgColor,
+        bgColor: state.bgColor,
+        shape: state.shape,
+        ecLevel: state.ecLevel,
+        version: state.version,
+        timestamp: new Date().toISOString()
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
+      renderHistory();
+      showToast(t('toast.savedHist'));
+    }
+
+    function renderHistory() {
+      const list = getHistory();
+      document.getElementById('historyCountBadge').textContent = list.length;
+      const container = document.getElementById('historyContainer');
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-center py-8 text-xs text-stone';
+        empty.textContent = t('hist.empty');
+        container.appendChild(empty);
+        return;
+      }
+
+      list.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded-xl bg-paper border border-borderWarm flex items-center justify-between gap-3';
+
+        const left = document.createElement('div');
+        left.className = 'min-w-0 flex-1';
+
+        const title = document.createElement('p');
+        title.className = 'font-mono text-xs font-semibold text-ink truncate';
+        title.textContent = item.payload;
+
+        const meta = document.createElement('p');
+        meta.className = 'text-[10px] font-mono text-stone mt-0.5';
+        const locale = state.lang === 'th' ? 'th-TH' : 'en-US';
+        meta.textContent = `V${item.version || 1} • EC-${item.ecLevel || 'L'} • ${new Date(item.timestamp).toLocaleString(locale)}`;
+
+        left.appendChild(title);
+        left.appendChild(meta);
+
+        const actions = document.createElement('div');
+        actions.className = 'flex items-center gap-1.5 shrink-0';
+
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'px-2.5 py-1.5 rounded-lg bg-forest text-white text-xs font-medium hover:bg-forestHover';
+        loadBtn.textContent = t('hist.useBtn');
+        loadBtn.onclick = () => {
+          state.payload = item.payload;
+          document.getElementById('qrInput').value = item.payload;
+          applyColorPreset(item.fgColor || '#141413', item.bgColor || '#FFFFFF');
+          setModuleShape(item.shape || 'square');
+          renderQR();
+          closeModal('historyModal');
+          showToast(t('toast.loadedHist'));
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'px-2 py-1.5 rounded-lg bg-subtle hover:bg-red-50 text-stone hover:text-red-700 text-xs';
+        delBtn.textContent = '✕';
+        delBtn.onclick = () => {
+          const updated = getHistory().filter(x => x.id !== item.id);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          renderHistory();
+        };
+
+        actions.appendChild(loadBtn);
+        actions.appendChild(delBtn);
+        row.appendChild(left);
+        row.appendChild(actions);
+        container.appendChild(row);
+      });
+    }
+
+    function clearAllHistory() {
+      localStorage.removeItem(STORAGE_KEY);
+      renderHistory();
+    }
+
+    function exportHistoryJSON() {
+      const list = getHistory();
+      const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'genqr-th-history.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // --- 11. Toast Notification ---
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 2600);
+    }
+  </script>
+</body>
+</html>
